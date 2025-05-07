@@ -510,6 +510,8 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             args.probes.power_spectrum.mobs_min,
             args.probes.power_spectrum.redshift,
             mobs_type=args.probes.power_spectrum.mobs_type,
+            xlum_sobol_n_models=args.xlum_sobol_n_models,
+            xlum_params_file=args.xlum_params_file,
             fraction=args.fraction_total,
             seed=args.split_seed,
             **kwargs,
