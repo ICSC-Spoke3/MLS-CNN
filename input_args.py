@@ -37,6 +37,12 @@ def add_args_common(parser):
 
     parser.add_argument("-f", "--input-file", help="Input parameter file.", type=str)
     parser.add_argument(
+        "-o",
+        "--output-dir",
+        help="The output directory. If provided, it overwrites any output directory specified in the input parameter file.",
+        type=str,
+    )
+    parser.add_argument(
         "-n",
         "--n-threads",
         help="Number of threads used by pytorch.",
@@ -193,7 +199,7 @@ class TuneInputs(BaseModel):
 class Inputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    output_dir: str
+    output_dir: str = "./"
 
     cosmo_params_file: str
     cosmo_params_names: list[str]
