@@ -225,6 +225,8 @@ class PinocchioPowerSpectrumDataset(Dataset):
         mobs_min: npt.ArrayLike,
         redshift: npt.ArrayLike,
         mobs_type: str = "mass",
+        xlum_sobol_n_models=0,
+        xlum_params_file: str | None = None,
         transform=torch.from_numpy,
         target_transform=torch.from_numpy,
         fraction: float = 1,
@@ -232,79 +234,6 @@ class PinocchioPowerSpectrumDataset(Dataset):
     ) -> None:
 
         self.data_dir = data_dir
-        self.transform = transform
-        self.target_transform = target_transform
-
-        self.mobs_min = np.ravel(np.array([mobs_min]))
-        self.redshift = np.ravel(np.array([redshift]))
-
-        # Get models numbers.
-        self.cosmo_models = get_cosmo_models_numbers(mobs_type, fraction, seed)
-
-        # Cosmological parameters of each data file.
-        self.labels = read_cosmo_params(cosmo_params_file, cosmo_params_names)[
-            self.cosmo_models - 1, :
-        ]
-
-        if mobs_type == "mass":
-            self.mobs_flag = "cut_mass"
-        elif mobs_type == "xlum":
-            self.mobs_flag = "cut_xlum"
-        else:
-            raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
-
-        data = np.genfromtxt(
-            f"{self.data_dir}/{self.mobs_flag}_{mobs_min[0]:.1e}/z_{redshift[0]:.4f}/pinocchio.model{self.cosmo_models[0]:05}_{self.cosmo_models[0]:05}.power_spectrum.dat"
-        )
-        self.kk = data[:, 0]
-
-        self.labels = self.target_transform(self.labels).type(torch.float32)
-
-    def __len__(self):
-
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-
-        data = []
-
-        for z in self.redshift:
-
-            for m in self.mobs_min:
-
-                data_path = f"{self.data_dir}/{self.mobs_flag}_{m:.1e}/z_{z:.4f}/pinocchio.model{self.cosmo_models[idx]:05}_{self.cosmo_models[idx]:05}.power_spectrum.dat"
-                data_tmp = np.genfromtxt(data_path)
-                data.append(np.log10(1 + data_tmp[:, 1]))
-
-        data = np.ravel(data)
-
-        label = self.labels[idx]
-
-        data = self.transform(data).type(torch.float32)
-
-        return data, label
-
-
-class PinocchioDensityFieldDataset(Dataset):
-
-    def __init__(
-        self,
-        cosmo_params_file: str,
-        cosmo_params_names: list[str],
-        img_dir: str,
-        mobs_min: npt.ArrayLike,
-        redshift: npt.ArrayLike,
-        mobs_type: str = "mass",
-        xlum_sobol_n_models=0,
-        xlum_params_file: str | None = None,
-        overdensity=False,
-        transform=torch.from_numpy,
-        target_transform=torch.from_numpy,
-        fraction: float = 1,
-        seed: int | None = None,
-    ) -> None:
-
-        self.img_dir = img_dir
         self.transform = transform
         self.target_transform = target_transform
 
@@ -319,9 +248,6 @@ class PinocchioDensityFieldDataset(Dataset):
             self.xlum_sobol = True
         else:
             self.xlum_sobol = False
-
-        # If True, use overdensity of objects instead of density.
-        self.overdensity = overdensity
 
         # Get cosmo models numbers.
         self.cosmo_models = get_cosmo_models_numbers(mobs_type, fraction, seed)
@@ -366,46 +292,158 @@ class PinocchioDensityFieldDataset(Dataset):
         else:
             cm_idx = idx
 
-        image = []
+        data = []
 
         for z in self.redshift:
 
-            for m in self.mobs_min:
+            if self.xlum_sobol:
+                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.power_spectrum.npz"
+            else:
+                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.power_spectrum.npz"
 
-                if self.xlum_sobol:
-                    img_path = f"{self.img_dir}/{self.mobs_flag}_{m:.1e}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.density_field.npy"
-                else:
-                    img_path = f"{self.img_dir}/{self.mobs_flag}_{m:.1e}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.density_field.npy"
+            with np.load(data_path) as data_read:
 
-                image_tmp = np.load(img_path)
+                for m in self.mobs_min:
 
-                if self.overdensity:
-                    image_tmp /= np.mean(image_tmp)
-                    image_tmp -= 1
+                    data.append(np.log10(1 + data_read[f"{self.mobs_flag}_{m:.1e}"]))
 
-                image_tmp = np.log10(1 + image_tmp)
+        data = np.ravel(data)
 
-                ndim = image_tmp.ndim
-                if ndim == 2:
-                    image_tmp = image_tmp.reshape(
-                        (-1, image_tmp.shape[0], image_tmp.shape[1])
-                    )
-                elif ndim == 3:
-                    image_tmp = image_tmp.reshape(
-                        (-1, image_tmp.shape[0], image_tmp.shape[1], image_tmp.shape[2])
-                    )
-                else:
-                    raise RuntimeError("Wrong dime for input images: ", ndim)
-
-                image.append(image_tmp)
-
-        image = np.vstack(image)
+        data = self.transform(data).type(torch.float32)
 
         label = self.labels[idx]
 
-        image = self.transform(image).type(torch.float32)
+        return data, label
 
-        return image, label
+
+class PinocchioDensityFieldDataset(Dataset):
+
+    def __init__(
+        self,
+        cosmo_params_file: str,
+        cosmo_params_names: list[str],
+        data_dir: str,
+        mobs_min: npt.ArrayLike,
+        redshift: npt.ArrayLike,
+        mobs_type: str = "mass",
+        xlum_sobol_n_models=0,
+        xlum_params_file: str | None = None,
+        overdensity=False,
+        transform=torch.from_numpy,
+        target_transform=torch.from_numpy,
+        fraction: float = 1,
+        seed: int | None = None,
+    ) -> None:
+
+        self.data_dir = data_dir
+        self.transform = transform
+        self.target_transform = target_transform
+
+        self.mobs_min = np.ravel(np.array([mobs_min]))
+        self.redshift = np.ravel(np.array([redshift]))
+
+        # If True, use overdensity of objects instead of density.
+        self.overdensity = overdensity
+
+        # Number of sobol sequence models for xlum.
+        self.xlum_sobol_n_models = xlum_sobol_n_models
+
+        # Use xlum sobol sequence or not.
+        if self.xlum_sobol_n_models > 0 and mobs_type == "xlum":
+            self.xlum_sobol = True
+        else:
+            self.xlum_sobol = False
+
+        # Get cosmo models numbers.
+        self.cosmo_models = get_cosmo_models_numbers(mobs_type, fraction, seed)
+
+        # Cosmological parameters of each data file.
+        cosmo_params = read_cosmo_params(cosmo_params_file, cosmo_params_names)
+
+        # Labels are cosmo params + xlum params.
+        if self.xlum_sobol:
+
+            if xlum_params_file is None:
+                raise ValueError("You must provide a value for `xlum_params_file`.")
+
+            self.labels = get_params_cosmo_xlum(
+                cosmo_params,
+                self.cosmo_models,
+                self.xlum_sobol_n_models,
+                xlum_params_file,
+            )
+        # No xlum parameters in the labels.
+        else:
+            self.labels = cosmo_params[self.cosmo_models - 1, :]
+
+        self.labels = self.target_transform(self.labels).type(torch.float32)
+
+        if mobs_type == "mass":
+            self.mobs_flag = "cut_mass"
+        elif mobs_type == "xlum":
+            self.mobs_flag = "cut_xlum"
+        else:
+            raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
+
+    def __len__(self):
+
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+
+        if self.xlum_sobol:
+            cm_idx = idx // self.xlum_sobol_n_models
+            xm_idx = idx % self.xlum_sobol_n_models
+        else:
+            cm_idx = idx
+
+        data = []
+
+        for z in self.redshift:
+
+            if self.xlum_sobol:
+                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.density_field.npz"
+            else:
+                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.density_field.npz"
+
+            with np.load(data_path) as data_read:
+
+                for m in self.mobs_min:
+
+                    data_tmp = data_read[f"{self.mobs_flag}_{m:.1e}"]
+
+                    if self.overdensity:
+                        data_tmp /= np.mean(data_tmp)
+                        data_tmp -= 1
+
+                    data_tmp = np.log10(1 + data_tmp)
+
+                    ndim = data_tmp.ndim
+                    if ndim == 2:
+                        data_tmp = data_tmp.reshape(
+                            (1, data_tmp.shape[0], data_tmp.shape[1])
+                        )
+                    elif ndim == 3:
+                        data_tmp = data_tmp.reshape(
+                            (
+                                1,
+                                data_tmp.shape[0],
+                                data_tmp.shape[1],
+                                data_tmp.shape[2],
+                            )
+                        )
+                    else:
+                        raise RuntimeError("Wrong dime for input images: ", ndim)
+
+                    data.append(data_tmp)
+
+        data = np.vstack(data)
+
+        data = self.transform(data).type(torch.float32)
+
+        label = self.labels[idx]
+
+        return data, label
 
 
 class MultiProbeDataset(Dataset):
