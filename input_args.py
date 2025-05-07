@@ -35,7 +35,14 @@ def get_cli_args():
 
 def add_args_common(parser):
 
-    parser.add_argument("-f", "--input-file", help="Input file.", type=str)
+    parser.add_argument("-f", "--input-file", help="Input parameter file.", type=str)
+    parser.add_argument(
+        "-n",
+        "--n-threads",
+        help="Number of threads used by pytorch.",
+        type=int,
+        default=1,
+    )
 
 
 class TrainInputs(BaseModel):
@@ -200,7 +207,6 @@ class Inputs(BaseModel):
     split_seed: int
 
     verbose: bool
-    n_threads: int
 
     train: TrainInputs
     probes: ProbesInputs

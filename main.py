@@ -2,6 +2,7 @@ import os
 import tomllib
 
 # WARNING: Import sklearn BEFORE torch, otherwise there is a weird bug on galileo.
+# DO NOT remove this import even if it is not used in this file.
 import sklearn
 
 import torch
@@ -19,7 +20,7 @@ def main(cli_args):
 
     input_args = Inputs(**input_args)
 
-    torch.set_num_threads(input_args.n_threads)
+    torch.set_num_threads(cli_args.n_threads)
 
     print("\n-------------------------------\n")
     print(cli_args)
