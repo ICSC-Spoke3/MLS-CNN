@@ -5,7 +5,7 @@ import torch
 from rich import print
 from sklearn.preprocessing import StandardScaler
 from torch import nn
-from torch.serialization import FILE_LIKE
+#from torch.serialization import FILE_LIKE
 from torch.utils.data import DataLoader
 from torchinfo import summary
 
@@ -62,6 +62,7 @@ def do_train(args: Inputs) -> None:
 
     # Init. model.
     model = models.get_model(args, dataset_train)
+    model.to(device)
 
     # Model summary.
     print(
@@ -242,7 +243,7 @@ def do_train(args: Inputs) -> None:
     )
 
 
-def checkpoint(model: nn.Module, filename: FILE_LIKE) -> None:
+def checkpoint(model: nn.Module, filename) -> None:
     torch.save(model.state_dict(), filename)
 
 
