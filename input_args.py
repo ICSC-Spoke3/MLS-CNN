@@ -127,6 +127,8 @@ class ProbesInputs(BaseModel):
 
     probe_list: list[str]
 
+    data_dir_root: str
+
     power_spectrum: PowerSpectrumInputs
     number_counts: NumberCountsInputs
     density_field: DensityFieldInputs

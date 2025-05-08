@@ -476,7 +476,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
 
     if probe == "density_field":
 
-        data_dir = args.probes.density_field.data_dir
+        data_dir = f"{args.probes.data_dir_root}/{args.probes.density_field.data_dir}"
 
         if verbose:
             print(f"Reading data for probe={probe} from {data_dir}.")
@@ -498,7 +498,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
 
     elif probe == "power_spectrum":
 
-        data_dir = args.probes.power_spectrum.data_dir
+        data_dir = f"{args.probes.data_dir_root}/{args.probes.power_spectrum.data_dir}"
 
         if verbose:
             print(f"Reading data for probe={probe} from {data_dir}.")
@@ -519,7 +519,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
 
     elif probe == "number_counts":
 
-        data_dir = args.probes.number_counts.data_dir
+        data_dir = f"{args.probes.data_dir_root}/{args.probes.number_counts.data_dir}"
 
         if verbose:
             print(f"Reading data for probe={probe} from {data_dir}.")

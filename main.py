@@ -18,7 +18,6 @@ def main(cli_args):
     with open(cli_args.input_file, mode="rb") as mytoml:
         input_args = tomllib.load(mytoml)
 
-    print("CLI output_dir:", cli_args.output_dir)
     # Use output directory from the CLI if provided.
     if cli_args.output_dir is not None:
         input_args["output_dir"] = cli_args.output_dir
