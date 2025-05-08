@@ -15,6 +15,11 @@ from tuning import do_tune
 
 def main(cli_args):
 
+    print("\n----- CUDA and GPU availability -----\n")
+    print("CUDA available: ", torch.cuda.is_available())
+    print("Number of GPUs available: ", torch.cuda.device_count())
+    print("\n-------------------------------------\n")
+
     with open(cli_args.input_file, mode="rb") as mytoml:
         input_args = tomllib.load(mytoml)
 

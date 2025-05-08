@@ -12,6 +12,8 @@ from data import get_datasets_multiprobe
 from input_args import Inputs, suggest_args
 from training import train_loop, validation_loop
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 def do_tune(args: Inputs) -> None:
 
@@ -122,6 +124,7 @@ def objective(
 
     # Init. model.
     model = models.get_model(args, dataset_train)
+    model.to(device)
 
     print(f"Trial {trial.number}:", trial.params)
 
