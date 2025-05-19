@@ -1,5 +1,8 @@
 __pycache__/
 
+.venv
+.python-version
+
 *.log
 
 .ipynb_checkpoints

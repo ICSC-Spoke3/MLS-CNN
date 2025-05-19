@@ -12,4 +12,4 @@ output_dir="/home/isaezcasares/data/mls/nn_inference_tests/power_spectrum_test"
 # Make output directory.
 mkdir -p $output_dir
 
-python main.py train -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/train_example.log &
+uv run python main.py train -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/train_example.log &
