@@ -3,6 +3,8 @@ __pycache__/
 .venv
 .python-version
 
+*egg-info*
+
 *.log
 
 .ipynb_checkpoints
