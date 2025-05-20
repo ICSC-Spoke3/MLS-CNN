@@ -1,7 +1,7 @@
 # Output directory.
 # This parameter is not mandatory and defaults to "./" if it is not provided.
 # It can also be specified from the command line, in which case it will override this value.
-# output_dir = "/home/inigosaez/mls/trained_models/density_field_n32_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8"
+# output_dir = "some_dir"
 
 # Names of the cosmological parameters used for inference.
 cosmo_params_names = ["Omega_m", "sigma8"] # Not full support for other parameters yet.
@@ -34,9 +34,6 @@ lazy_loading = false
 
 [train]
 # These are the parameters used to train the network.
-
-# Type of CNN architecture.
-cnn_type = 2
 
 # Maximum number of epochs.
 n_epochs = 1000

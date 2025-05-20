@@ -88,7 +88,6 @@ class TrainInputs(BaseModel):
     nc_fc_units_per_layer: int
 
     density_field_n_channels_base: int
-    cnn_type: int = 1
 
 
 class PowerSpectrumInputs(BaseModel):

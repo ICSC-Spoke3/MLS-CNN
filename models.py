@@ -297,24 +297,13 @@ def get_model(args: Inputs, dataset: Dataset):
                 # Dimension of input images (without channel dim).
                 dim = dataset[0][0].dim() - 1
 
-            if args.train.cnn_type == 1:
-                cnn_extractor = get_cnn_extractor(
-                    dim,
-                    nside,
-                    in_channels,
-                    args.train.density_field_n_channels_base,
-                    args.train.batch_norm,
-                )
-            elif args.train.cnn_type == 2:
-                cnn_extractor = get_cnn_extractor(
-                    dim,
-                    nside,
-                    in_channels,
-                    args.train.density_field_n_channels_base,
-                    args.train.batch_norm,
-                )
-            else:
-                raise ValueError("Wrong value for `cnn_type`. Must be on of: 1, 2.")
+            cnn_extractor = get_cnn_extractor(
+                dim,
+                nside,
+                in_channels,
+                args.train.density_field_n_channels_base,
+                args.train.batch_norm,
+            )
 
             feature_extractor_list.append(cnn_extractor)
 
