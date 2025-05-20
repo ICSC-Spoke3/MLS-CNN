@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J tu_cnn_x5_z_0
+#SBATCH -J tu_cnn_n32_x5_z_0
 #SBATCH --partition=astro
 #SBATCH --nodes=1
 #SBATCH --ntasks=32
@@ -44,8 +44,8 @@ n_threads=1
 #param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1e-2_1e0_10_z_0.toml"
 # param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1.3e-1_1e0_5_z_0.toml"
 
-# param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n16_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8.toml"
-param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8.toml"
+# param_file="/home/inigosaez/mls/MLS-CNN/inputs/input_galileo_cnn_n16_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8.toml"
+param_file="/home/inigosaez/mls/MLS-CNN/inputs/input_galileo_cnn_n32_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8.toml"
 
 ########## Output dir: PS #########
 
@@ -88,7 +88,7 @@ param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1
 # output_dir="/home/inigosaez/mls/trained_models/density_field_n16_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8"
 output_dir="/home/inigosaez/mls/trained_models/density_field_n32_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8"
 
-exe_python="/home/inigosaez/mls/nn_inference/main.py"
+exe_python="/home/inigosaez/mls/MLS-CNN/main.py"
 
 mkdir -p $output_dir
 cd $output_dir

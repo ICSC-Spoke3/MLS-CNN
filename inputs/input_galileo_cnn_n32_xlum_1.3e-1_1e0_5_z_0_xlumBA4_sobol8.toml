@@ -9,7 +9,7 @@ cosmo_params_names = ["Omega_m", "sigma8"] # Not full support for other paramete
 # Only used if mobs_type="xlum" for at least one of the considered probes.
 xlum_sobol_n_models = 8
 # File with the values of the X-ray illumination parameters.
-xlum_params_file = "/home/isaezcasares/data/mls/models_parameters/sobol_samples_Nmodels_8samples_6sigma.npz"
+xlum_params_file = "/astro/inigosaez/mls/models_parameters/sobol_samples_Nmodels_8samples_6sigma.npz"
 
 # Fraction of the total dataset to be used.
 fraction_total = 1
@@ -21,6 +21,11 @@ split_seed = 1234
 
 # Verbose output.
 verbose = true
+
+# Lazy data loading.
+# If False, read whole dataset from disk at once into memery and send everything to device (CPU/GPU).
+# If True, read data from disk and send to device by batches.
+lazy_loading = false
 
 [train]
 # These are the parameters used to train the network.
@@ -98,7 +103,7 @@ density_field_n_channels_base = 1
 probe_list = ["density_field"]
 
 # Root directory relative to which the data directories for each probes are defined.
-data_dir_root = "/home/isaezcasares/data/mls/pinocchio_observables/L1500_N750_sobol_ndim2"
+data_dir_root = "/astro/inigosaez/mls/pinocchio_observables/L1500_N750_sobol_ndim2"
 
 [probes.density_field]
 # Different mass/luminosity thresholds and redshifts are combined as different channels.
