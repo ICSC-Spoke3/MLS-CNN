@@ -209,6 +209,12 @@ high = 1
 low = 0
 high = 1
 
+[tune.eps]
+
+low = 1-9
+high = 1-6
+log = true
+
 [tune.batch_size]
 
 choices = [16, 32, 64, 128, 256]

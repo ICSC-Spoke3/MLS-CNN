@@ -142,6 +142,7 @@ def objective(
         lr=args.train.learning_rate,
         weight_decay=args.train.weight_decay,
         betas=(args.train.beta_1, args.train.beta_2),
+        eps=args.train.eps,
     )
 
     # Scheduler.

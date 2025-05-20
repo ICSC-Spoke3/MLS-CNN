@@ -189,8 +189,8 @@ log = true
 
 [tune.weight_decay]
 
-low = 1e-4
-high = 1
+low = 1e-7
+high = 1e-1
 log = true
 
 [tune.beta_1]
@@ -202,6 +202,12 @@ high = 1
 
 low = 0
 high = 1
+
+[tune.eps]
+
+low = 1-9
+high = 1-6
+log = true
 
 [tune.batch_size]
 

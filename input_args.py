@@ -75,6 +75,7 @@ class TrainInputs(BaseModel):
     weight_decay: float
     beta_1: float
     beta_2: float
+    eps: float
 
     dropout: float
 
@@ -182,6 +183,7 @@ class TuneInputs(BaseModel):
     weight_decay: HyperParamFloat
     beta_1: HyperParamFloat
     beta_2: HyperParamFloat
+    eps: HyperParamFloat
 
     batch_size: HyperParamCategorical
 
@@ -260,6 +262,13 @@ def suggest_args(
         args.tune.beta_2.high,
         step=args.tune.beta_2.step,
         log=args.tune.beta_2.log,
+    )
+    args.train.eps = trial.suggest_float(
+        "eps",
+        args.tune.eps.low,
+        args.tune.eps.high,
+        step=args.tune.eps.step,
+        log=args.tune.eps.log,
     )
     args.train.batch_size = trial.suggest_categorical(
         "batch_size", args.tune.batch_size.choices

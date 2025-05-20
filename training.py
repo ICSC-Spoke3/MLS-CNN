@@ -106,6 +106,7 @@ def do_train(args: Inputs) -> None:
         lr=args.train.learning_rate,
         weight_decay=args.train.learning_rate,
         betas=(args.train.beta_1, args.train.beta_2),
+        eps=args.train.eps,
     )
 
     # Scheduler.
