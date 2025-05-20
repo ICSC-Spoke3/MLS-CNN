@@ -73,6 +73,8 @@ class TrainInputs(BaseModel):
 
     learning_rate: float
     weight_decay: float
+    beta_1: float
+    beta_2: float
 
     dropout: float
 
@@ -178,6 +180,9 @@ class TuneInputs(BaseModel):
 
     learning_rate: HyperParamFloat
     weight_decay: HyperParamFloat
+    beta_1: HyperParamFloat
+    beta_2: HyperParamFloat
+
     batch_size: HyperParamCategorical
 
     regressor_fc_layers: HyperParamInt
@@ -241,6 +246,20 @@ def suggest_args(
         args.tune.weight_decay.high,
         step=args.tune.weight_decay.step,
         log=args.tune.weight_decay.log,
+    )
+    args.train.beta_1 = trial.suggest_float(
+        "beta_1",
+        args.tune.beta_1.low,
+        args.tune.beta_1.high,
+        step=args.tune.beta_1.step,
+        log=args.tune.beta_1.log,
+    )
+    args.train.beta_2 = trial.suggest_float(
+        "beta_2",
+        args.tune.beta_2.low,
+        args.tune.beta_2.high,
+        step=args.tune.beta_2.step,
+        log=args.tune.beta_2.log,
     )
     args.train.batch_size = trial.suggest_categorical(
         "batch_size", args.tune.batch_size.choices

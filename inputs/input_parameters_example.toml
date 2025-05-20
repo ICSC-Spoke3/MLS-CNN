@@ -70,10 +70,13 @@ reduce_on_plateau_factor = 0.1
 # Batch size for the training dataset.
 batch_size = 32
 
-# Initial learning rate.
+# Initial learning rate for Adam" optimizer.
 learning_rate = 1e-3
 # Weight decay for AdamW optimizer.
-weight_decay = 0.1
+weight_decay = 0.01
+# Beta values for AdamW optimizer.
+beta_1 = 0.9
+beta_2 = 0.999
 
 # Dropout rate.
 dropout = 0
@@ -166,7 +169,7 @@ study_name = "mystudy"
 resume = true
 
 # Number of trials per process.
-trials = 10
+trials = 5
 # Maximum number of epochs for each trial.
 n_epochs = 1000
 
@@ -195,6 +198,16 @@ log = true
 low = 1e-4
 high = 1
 log = true
+
+[tune.beta_1]
+
+low = 0
+high = 1
+
+[tune.beta_2]
+
+low = 0
+high = 1
 
 [tune.batch_size]
 
