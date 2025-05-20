@@ -8,6 +8,8 @@ from torchvision.transforms import Lambda
 
 from input_args import Inputs
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 def get_params_cosmo_xlum(
     cosmo_params: npt.NDArray,
@@ -127,6 +129,7 @@ class PinocchioNumberCountsDataset(Dataset):
         target_transform=torch.from_numpy,
         fraction: float = 1,
         seed: int | None = None,
+        lazy_loading: bool = False,
     ) -> None:
 
         if not cumulative:
@@ -181,10 +184,30 @@ class PinocchioNumberCountsDataset(Dataset):
         else:
             raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
 
+        self.lazy_loading = lazy_loading
+
+        if not self.lazy_loading:
+            self.data = []
+            for i in range(len(self.labels)):
+                self.labels[i].to(device, non_blocking=True)
+                self.data.append(self.read_data(i).to(device, non_blocking=True))
+
     def __len__(self):
+
         return len(self.labels)
 
     def __getitem__(self, idx):
+
+        if self.lazy_loading:
+            data = self.read_data(idx)
+        else:
+            data = self.data[idx]
+
+        label = self.labels[idx]
+
+        return data, label
+
+    def read_data(self, idx):
 
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
@@ -208,11 +231,9 @@ class PinocchioNumberCountsDataset(Dataset):
 
         data = np.ravel(data)
 
-        label = self.labels[idx]
-
         data = self.transform(data).type(torch.float32)
 
-        return data, label
+        return data
 
 
 class PinocchioPowerSpectrumDataset(Dataset):
@@ -231,6 +252,7 @@ class PinocchioPowerSpectrumDataset(Dataset):
         target_transform=torch.from_numpy,
         fraction: float = 1,
         seed: int | None = None,
+        lazy_loading: bool = False,
     ) -> None:
 
         self.data_dir = data_dir
@@ -280,11 +302,31 @@ class PinocchioPowerSpectrumDataset(Dataset):
         else:
             raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
 
+
+        self.lazy_loading = lazy_loading
+
+        if not self.lazy_loading:
+            self.data = []
+            for i in range(len(self.labels)):
+                self.labels[i].to(device, non_blocking=True)
+                self.data.append(self.read_data(i).to(device, non_blocking=True))
+
     def __len__(self):
 
         return len(self.labels)
 
     def __getitem__(self, idx):
+
+        if self.lazy_loading:
+            data = self.read_data(idx)
+        else:
+            data = self.data[idx]
+
+        label = self.labels[idx]
+
+        return data, label
+
+    def read_data(self, idx):
 
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
@@ -311,9 +353,7 @@ class PinocchioPowerSpectrumDataset(Dataset):
 
         data = self.transform(data).type(torch.float32)
 
-        label = self.labels[idx]
-
-        return data, label
+        return data
 
 
 class PinocchioDensityFieldDataset(Dataset):
@@ -333,6 +373,7 @@ class PinocchioDensityFieldDataset(Dataset):
         target_transform=torch.from_numpy,
         fraction: float = 1,
         seed: int | None = None,
+        lazy_loading: bool = False,
     ) -> None:
 
         self.data_dir = data_dir
@@ -385,11 +426,30 @@ class PinocchioDensityFieldDataset(Dataset):
         else:
             raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
 
+        self.lazy_loading = lazy_loading
+
+        if not self.lazy_loading:
+            self.data = []
+            for i in range(len(self.labels)):
+                self.labels[i].to(device, non_blocking=True)
+                self.data.append(self.read_data(i).to(device, non_blocking=True))
+
     def __len__(self):
 
         return len(self.labels)
 
     def __getitem__(self, idx):
+
+        if self.lazy_loading:
+            data = self.read_data(idx)
+        else:
+            data = self.data[idx]
+
+        label = self.labels[idx]
+
+        return data, label
+
+    def read_data(self, idx):
 
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
@@ -441,9 +501,7 @@ class PinocchioDensityFieldDataset(Dataset):
 
         data = self.transform(data).type(torch.float32)
 
-        label = self.labels[idx]
-
-        return data, label
+        return data
 
 
 class MultiProbeDataset(Dataset):
@@ -544,7 +602,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
     return dataset
 
 
-def get_datasets_single_probe(
+def get_dataset_single_probe(
     probe: str, args: Inputs, verbose: bool = True
 ) -> tuple[Dataset, StandardScaler, StandardScaler | tuple[float, float]]:
 
@@ -562,47 +620,6 @@ def get_datasets_single_probe(
 
     # Compute mean and standard deviation of all outputs from training set.
     dataloader_train = DataLoader(dataset_train, batch_size=len(dataset_train))
-
-    # if probe == "density_field":
-
-    #     # Compute mean and std over all channels.
-    #     mean = next(iter(dataloader_train))[0].mean()
-    #     std = next(iter(dataloader_train))[0].std()
-
-    #     # # Save mean and std for later.
-    #     # filename = f"dataset_standardization_{probe}_output.dat"
-    #     # np.savetxt(
-    #     #     f"{args.output_dir}/{filename}",
-    #     #     [mean, std],
-    #     #     header="Mean Std",
-    #     # )
-
-    #     # Transform to standardize data.
-    #     transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - mean) / std)
-
-    #     mean = mean.detach().numpy()
-    #     std = std.detach().numpy()
-    #     if verbose:
-    #         print(f"Standardizing dataset with: mean={mean}, std={std}.")
-
-    #     scaler_data = (float(mean), float(std))
-
-    # else:
-
-    #     scaler_data = StandardScaler()
-    #     scaler_data.fit(next(iter(dataloader_train))[0])
-
-    #     if verbose:
-    #         print(
-    #             f"Standardizing dataset with: mean={scaler_data.mean_}, std={scaler_data.scale_}."
-    #         )
-
-    #     # Transform to standardize data.
-    #     transform_normalize = Lambda(
-    #         lambda x: torch.from_numpy(
-    #             np.ravel(scaler_data.transform(x.reshape(1, -1)))
-    #         )
-    #     )
 
     # Compute mean and std over all input features.
     mean = next(iter(dataloader_train))[0].mean()
@@ -653,10 +670,10 @@ def get_datasets_single_probe(
     return dataset, scaler_labels, scaler_data
 
 
-def get_datasets_multiprobe(
-    args: Inputs, verbose: bool = True
-) -> tuple[
-    Dataset, Dataset, Dataset, StandardScaler, StandardScaler | tuple[float, float]
+def get_datasets_multiprobe(args: Inputs, verbose: bool = True) -> tuple[
+    Dataset,
+    StandardScaler,
+    list[StandardScaler | tuple[float, float]],
 ]:
 
     dataset_list = []
@@ -664,7 +681,7 @@ def get_datasets_multiprobe(
 
     for probe in args.probes.probe_list:
 
-        dataset, scaler_labels, scaler_data = get_datasets_single_probe(
+        dataset, scaler_labels, scaler_data = get_dataset_single_probe(
             probe, args, verbose
         )
 
@@ -673,13 +690,4 @@ def get_datasets_multiprobe(
 
     dataset = MultiProbeDataset(dataset_list)
 
-    # Split into training, validation, and test datasets.
-    fraction_train = 1 - args.fraction_validation - args.fraction_test
-    generator = torch.Generator().manual_seed(args.split_seed)
-    dataset_train, dataset_val, dataset_test = random_split(
-        dataset,
-        [fraction_train, args.fraction_validation, args.fraction_test],
-        generator=generator,
-    )
-
-    return dataset_train, dataset_val, dataset_test, scaler_labels, scaler_data_list
+    return dataset, scaler_labels, scaler_data_list

@@ -5,10 +5,10 @@ import optuna
 import torch
 from optuna.trial import TrialState
 from rich import print
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, random_split
 
 import models as models
-from data import get_datasets_multiprobe
+from data import get_dataset_single_probe, get_datasets_multiprobe
 from input_args import Inputs, suggest_args
 from training import train_loop, validation_loop
 
@@ -22,13 +22,6 @@ def do_tune(args: Inputs) -> None:
             f"{args.output_dir}/optuna_journal.log"
         )
     )
-
-    # Delete previous study.
-    if args.tune.delete_previous:
-        optuna.delete_study(
-            study_name=args.tune.study_name,
-            storage=storage,
-        )
 
     sampler = optuna.samplers.TPESampler(n_startup_trials=10, constant_liar=False)
 
@@ -64,8 +57,22 @@ def do_tune(args: Inputs) -> None:
 
     # Get training, validation, and test datasets.
     print(f"-------------------------------")
-    dataset_train, dataset_val, dataset_test, scaler_labels, scaler_data = (
-        get_datasets_multiprobe(args, verbose=True)
+    # Get full dataset.
+    if len(args.probes.probe_list) == 1:
+        dataset, scaler_labels, scaler_data = get_dataset_single_probe(
+            args.probes.probe_list[0], args, verbose=True
+        )
+    else:
+        dataset, scaler_labels, scaler_data = get_datasets_multiprobe(
+            args, verbose=True
+        )
+    # Split into training, validation, and test datasets.
+    fraction_train = 1 - args.fraction_validation - args.fraction_test
+    generator = torch.Generator().manual_seed(args.split_seed)
+    dataset_train, dataset_val, dataset_test = random_split(
+        dataset,
+        [fraction_train, args.fraction_validation, args.fraction_test],
+        generator=generator,
     )
     print(f"-------------------------------\n")
 
@@ -124,7 +131,8 @@ def objective(
 
     # Init. model.
     model = models.get_model(args, dataset_train)
-    model.to(device)
+    model.compile(mode="max-autotune")
+    model.to(device, non_blocking=True)
 
     print(f"Trial {trial.number}:", trial.params)
 
@@ -163,6 +171,7 @@ def objective(
             model,
             optimizer,
             verbose=False,
+            send_to_device=args.lazy_loading,
             loss_skew=args.train.loss_skew,
             loss_kurt=args.train.loss_kurt,
             gauss_nllloss=args.train.gauss_nllloss,
@@ -170,6 +179,7 @@ def objective(
         val_loss = validation_loop(
             dataloader_val,
             model,
+            send_to_device=args.lazy_loading,
             loss_skew=args.train.loss_skew,
             loss_kurt=args.train.loss_kurt,
             gauss_nllloss=args.train.gauss_nllloss,

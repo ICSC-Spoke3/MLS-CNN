@@ -5,13 +5,12 @@ import torch
 from rich import print
 from sklearn.preprocessing import StandardScaler
 from torch import nn
-
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchinfo import summary
 
 import models as models
 import plot as plot
-from data import get_datasets_multiprobe
+from data import get_dataset_single_probe, get_datasets_multiprobe
 from input_args import Inputs, suggest_args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -40,8 +39,22 @@ def do_train(args: Inputs) -> None:
 
     # Get training, validation, and test datasets.
     print(f"-------------------------------")
-    dataset_train, dataset_val, dataset_test, scaler_labels, scaler_data = (
-        get_datasets_multiprobe(args, verbose=True)
+    # Get full dataset.
+    if len(args.probes.probe_list) == 1:
+        dataset, scaler_labels, scaler_data = get_dataset_single_probe(
+            args.probes.probe_list[0], args, verbose=True
+        )
+    else:
+        dataset, scaler_labels, scaler_data = get_datasets_multiprobe(
+            args, verbose=True
+        )
+    # Split into training, validation, and test datasets.
+    fraction_train = 1 - args.fraction_validation - args.fraction_test
+    generator = torch.Generator().manual_seed(args.split_seed)
+    dataset_train, dataset_val, dataset_test = random_split(
+        dataset,
+        [fraction_train, args.fraction_validation, args.fraction_test],
+        generator=generator,
     )
     print(f"-------------------------------\n")
 
@@ -62,7 +75,8 @@ def do_train(args: Inputs) -> None:
 
     # Init. model.
     model = models.get_model(args, dataset_train)
-    model.to(device)
+    model.compile(mode="max-autotune")
+    model.to(device, non_blocking=True)
 
     # Model summary.
     print(
@@ -120,6 +134,7 @@ def do_train(args: Inputs) -> None:
         args.train.n_epochs,
         patience_early_stopping,
         args.output_dir,
+        send_to_device=args.lazy_loading,
         loss_skew=args.train.loss_skew,
         loss_kurt=args.train.loss_kurt,
         gauss_nllloss=args.train.gauss_nllloss,
@@ -143,13 +158,28 @@ def do_train(args: Inputs) -> None:
 
     # Evaluate model.
     target_train, pred_train = eval_model(
-        model, dataloader_train, scaler_labels, "training", args.output_dir
+        model,
+        dataloader_train,
+        scaler_labels,
+        "training",
+        args.output_dir,
+        send_to_device=args.lazy_loading,
     )
     target_val, pred_val = eval_model(
-        model, dataloader_val, scaler_labels, "validation", args.output_dir
+        model,
+        dataloader_val,
+        scaler_labels,
+        "validation",
+        args.output_dir,
+        send_to_device=args.lazy_loading,
     )
     target_test, pred_test = eval_model(
-        model, dataloader_test, scaler_labels, "test", args.output_dir
+        model,
+        dataloader_test,
+        scaler_labels,
+        "test",
+        args.output_dir,
+        send_to_device=args.lazy_loading,
     )
 
     # Predictions vs targets.
@@ -251,6 +281,7 @@ def train_loop(
     dataloader: DataLoader,
     model: nn.Module,
     optimizer: torch.optim.Optimizer,
+    send_to_device: bool = True,
     loss_skew=False,
     loss_kurt=False,
     gauss_nllloss=False,
@@ -266,8 +297,12 @@ def train_loop(
 
     model.train()
     for batch, (X, y) in enumerate(dataloader):
-        X = [elt.to(device) for elt in X]
-        y = y.to(device)
+        if send_to_device:
+            if isinstance(X, list):
+                X = [elt.to(device, non_blocking=True) for elt in X]
+            else:
+                X.to(device, non_blocking=True)
+            y = y.to(device, non_blocking=True)
 
         optimizer.zero_grad()
 
@@ -276,11 +311,6 @@ def train_loop(
 
         pred_means = pred[:, :n_pred]
         pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
-        # loss_primary = torch.mean(torch.sum((values - y) ** 2, dim=1), dim=0)
-        # loss_secondary = torch.mean(
-        #     torch.sum(((values - y) ** 2 - stds**2) ** 2, dim=1), dim=0
-        # )
-        # loss = torch.log(loss_primary) + torch.log(loss_secondary)
 
         if gauss_nllloss:
 
@@ -330,6 +360,7 @@ def train_loop(
 def validation_loop(
     dataloader: DataLoader,
     model: nn.Module,
+    send_to_device: bool = True,
     loss_skew=False,
     loss_kurt=False,
     gauss_nllloss=False,
@@ -342,19 +373,19 @@ def validation_loop(
     model.eval()
     with torch.no_grad():
         for X, y in dataloader:
-            X = [elt.to(device) for elt in X]
-            y = y.to(device)
+            if send_to_device:
+                if isinstance(X, list):
+                    X = [elt.to(device, non_blocking=True) for elt in X]
+                else:
+                    X.to(device, non_blocking=True)
+                y = y.to(device, non_blocking=True)
 
             pred = model(X)
             n_pred = int(pred.shape[1] / 2)
 
             pred_means = pred[:, :n_pred]
             pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
-            # loss_primary = torch.mean(torch.sum((values - y) ** 2, dim=1), dim=0)
-            # loss_secondary = torch.mean(
-            #     torch.sum(((values - y) ** 2 - stds**2) ** 2, dim=1), dim=0
-            # )
-            # loss = torch.log(loss_primary) + torch.log(loss_secondary)
+
             if gauss_nllloss:
 
                 loss_fn = nn.GaussianNLLLoss()
@@ -405,6 +436,7 @@ def training(
     epochs: int,
     patience: int,
     output: str,
+    send_to_device: bool = True,
     loss_skew=False,
     loss_kurt=False,
     gauss_nllloss=False,
@@ -427,6 +459,7 @@ def training(
             train_dataloader,
             model,
             optimizer,
+            send_to_device=send_to_device,
             loss_skew=loss_skew,
             loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
@@ -435,6 +468,7 @@ def training(
         val_loss = validation_loop(
             val_dataloader,
             model,
+            send_to_device=send_to_device,
             loss_skew=loss_skew,
             loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
@@ -480,6 +514,7 @@ def eval_model(
     scaler_labels: StandardScaler,
     set_name: str,
     output_dir: str,
+    send_to_device: bool = True,
 ) -> tuple[npt.NDArray, npt.NDArray]:
 
     pred = []
@@ -491,7 +526,11 @@ def eval_model(
 
         target.append(y.detach().numpy())
 
-        X = [elt.to(device) for elt in X]
+        if send_to_device:
+            if isinstance(X, list):
+                X = [elt.to(device, non_blocking=True) for elt in X]
+            else:
+                X.to(device, non_blocking=True)
         pred.append(model(X).detach().numpy())
 
     n_pred = int(pred[0].shape[1] / 2)

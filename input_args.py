@@ -164,7 +164,6 @@ class TuneInputs(BaseModel):
     study_name: str
 
     resume: bool
-    delete_previous: bool
 
     trials: int
     n_epochs: int
@@ -215,6 +214,8 @@ class Inputs(BaseModel):
     split_seed: int
 
     verbose: bool
+
+    lazy_loading: bool
 
     train: TrainInputs
     probes: ProbesInputs
