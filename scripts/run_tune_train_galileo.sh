@@ -11,6 +11,8 @@
 
 set -x
 
+n_threads=1
+
 ########## Param. file: PS #########
 
 #param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_ps.toml"
@@ -40,9 +42,10 @@ set -x
 #param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn2_n32_m5_z1.toml"
 
 #param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1e-2_1e0_10_z_0.toml"
-param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1.3e-1_1e0_5_z_0.toml"
+# param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1.3e-1_1e0_5_z_0.toml"
 
-#param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8.toml"
+# param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n16_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8.toml"
+param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8.toml"
 
 ########## Output dir: PS #########
 
@@ -80,9 +83,10 @@ param_file="/home/inigosaez/mls/nn_inference/inputs/input_galileo_cnn_n32_xlum_1
 #output_dir="/home/inigosaez/mls/trained_models/density_field_n16_norsd_nmass10_nz1_f0.0010"
 
 #output_dir="/home/inigosaez/mls/trained_models/density_field_n32_xlum_1e-2_1e0_10_z_0"
-output_dir="/home/inigosaez/mls/trained_models/density_field_n32_xlum_1.3e-1_1e0_5_z_0"
+# output_dir="/home/inigosaez/mls/trained_models/density_field_n32_xlum_1.3e-1_1e0_5_z_0"
 
-#output_dir="/home/inigosaez/mls/trained_models/density_field_n32_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8"
+# output_dir="/home/inigosaez/mls/trained_models/density_field_n16_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8"
+output_dir="/home/inigosaez/mls/trained_models/density_field_n32_xlum_1.3e-1_1e0_5_z_0_xlumBA4_sobol8"
 
 exe_python="/home/inigosaez/mls/nn_inference/main.py"
 
@@ -90,6 +94,6 @@ mkdir -p $output_dir
 cd $output_dir
 mkdir -p logs
 
-parallel --line-buffer --tmpdir /home/inigosaez/parallel_tmpdir/ -j 32 "python $exe_python tune -f $param_file &> logs/tune_{}.log" ::: {1..32}
+parallel --line-buffer --tmpdir /home/inigosaez/parallel_tmpdir/ -j 32 "python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> logs/tune_{}.log" ::: {1..32}
 
-python $exe_python train -f $param_file &> logs/train.log
+python $exe_python train -n $n_threads -f $param_file -o $output_dir &>logs/train.log
