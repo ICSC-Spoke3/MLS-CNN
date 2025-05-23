@@ -77,6 +77,8 @@ weight_decay = 0.01
 # Beta values for AdamW optimizer.
 beta_1 = 0.9
 beta_2 = 0.999
+# Epsilon value for AdamW optimizer.                         
+eps = 1e-8
 
 # Dropout rate.
 dropout = 0
@@ -195,8 +197,8 @@ log = true
 
 [tune.weight_decay]
 
-low = 1e-4
-high = 1
+low = 1e-7
+high = 1e-1
 log = true
 
 [tune.beta_1]
@@ -211,8 +213,8 @@ high = 1
 
 [tune.eps]
 
-low = 1-9
-high = 1-6
+low = 1e-9
+high = 1e-6
 log = true
 
 [tune.batch_size]
