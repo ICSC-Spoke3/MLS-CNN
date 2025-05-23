@@ -163,7 +163,7 @@ study_name = "mystudy"
 resume = true
 
 # Number of trials per process.
-trials = 2
+trials = 3
 # Maximum number of epochs for each trial.
 n_epochs = 1000
 
