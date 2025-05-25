@@ -62,28 +62,35 @@ def do_train(args: Inputs) -> None:
     dataloader_train = DataLoader(
         dataset_train,
         batch_size=args.train.batch_size,
-        shuffle=True,
-        #num_workers=args.n_threads,
-        num_workers=0,
         drop_last=True,
-        #pin_memory=True
+        shuffle=True,
+        # num_workers=args.n_threads,
+        num_workers=0,
+        # pin_memory=True
     )
     dataloader_val = DataLoader(
-        dataset_val, batch_size=len(dataset_val), shuffle=False,
-        #num_workers=args.n_threads,
+        dataset_val,
+        batch_size=args.train.batch_size,
+        drop_last=False,
+        shuffle=False,
+        # num_workers=args.n_threads,
         num_workers=0,
-        #pin_memory=True
+        # pin_memory=True
     )
     dataloader_test = DataLoader(
-        dataset_test, batch_size=len(dataset_test), shuffle=False,
-        #num_workers=args.n_threads,
+        dataset_test,
+        batch_size=args.train.batch_size,
+        drop_last=False,
+        shuffle=False,
+        # num_workers=args.n_threads,
         num_workers=0,
-        #pin_memory=True
+        # pin_memory=True
     )
 
     # Init. model.
     model = models.get_model(args, dataset_train)
     if args.train.compile_model:
+        torch.set_float32_matmul_precision("high")
         model.compile(mode=args.train.compile_mode)
     model.to(device, non_blocking=True)
 
