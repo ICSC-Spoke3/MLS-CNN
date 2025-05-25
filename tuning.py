@@ -34,17 +34,23 @@ def do_tune(args: Inputs) -> None:
         )
 
         if args.verbose:
+            print("Using hyperband pruner.")
             print(
                 f"Number of HyperBand brackets (pruners): {int(np.emath.logn(args.tune.hyperband_reduction_factor, hyperband_max_resource / args.tune.hyperband_min_resource)) + 1}"
             )
 
-    else:
+    elif args.tune.pruner == "median":
+
+        if args.verbose:
+            print("Using median pruner.")
 
         pruner = optuna.pruners.MedianPruner(
             n_startup_trials=args.tune.median_n_startup_trials,
             n_warmup_steps=args.tune.median_n_warmup_steps,
             n_min_trials=args.tune.median_n_min_trials,
         )
+    else:
+        raise ValueError("Wrong pruner name. Supported pruners are: 'median' or 'hyperband'.")
 
     study = optuna.create_study(
         study_name=args.tune.study_name,
