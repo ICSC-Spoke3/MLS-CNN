@@ -302,7 +302,6 @@ class PinocchioPowerSpectrumDataset(Dataset):
         else:
             raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
 
-
         self.lazy_loading = lazy_loading
 
         if not self.lazy_loading:

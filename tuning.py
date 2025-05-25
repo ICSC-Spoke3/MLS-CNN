@@ -121,17 +121,20 @@ def objective(
     dataloader_train = DataLoader(
         dataset_train,
         batch_size=args.train.batch_size,
-        shuffle=True,
-        #num_workers=args.n_threads,
-        num_workers=0,
         drop_last=True,
-        #pin_memory=True,
+        shuffle=True,
+        # num_workers=args.n_threads,
+        num_workers=0,
+        # pin_memory=True,
     )
     dataloader_val = DataLoader(
-        dataset_val, batch_size=len(dataset_val), shuffle=False, 
-        #num_workers=args.n_threads,
+        dataset_val,
+        batch_size=args.train.batch_size,
+        drop_last=False,
+        shuffle=False,
+        # num_workers=args.n_threads,
         num_workers=0,
-        #pin_memory=True
+        # pin_memory=True
     )
 
     # Init. model.
