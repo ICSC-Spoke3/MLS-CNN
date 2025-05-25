@@ -83,7 +83,8 @@ def do_train(args: Inputs) -> None:
 
     # Init. model.
     model = models.get_model(args, dataset_train)
-    #model.compile(mode="max-autotune")
+    if args.train.compile_model:
+        model.compile(mode=args.train.compile_mode)
     model.to(device, non_blocking=True)
 
     # Model summary.

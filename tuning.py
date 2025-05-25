@@ -136,7 +136,8 @@ def objective(
 
     # Init. model.
     model = models.get_model(args, dataset_train)
-    #model.compile(mode="max-autotune")
+    if args.tune.compile_model:
+        model.compile(mode=args.tune.compile_mode)
     model.to(device, non_blocking=True)
 
     print(f"Trial {trial.number}:", trial.params)

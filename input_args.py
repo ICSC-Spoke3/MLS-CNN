@@ -54,6 +54,9 @@ def add_args_common(parser):
 class TrainInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    compile_model: bool
+    compile_mode: str
+
     train_from_tune: bool
     tune_dir: str
     study_name: str
@@ -166,6 +169,9 @@ class TuneInputs(BaseModel):
     study_name: str
 
     resume: bool
+
+    compile_model: bool
+    compile_mode: str
 
     trials: int
     n_epochs: int
