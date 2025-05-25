@@ -207,6 +207,7 @@ class Inputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     output_dir: str = "./"
+    n_threads: int = 1
 
     cosmo_params_file: str
     cosmo_params_names: list[str]

@@ -636,8 +636,8 @@ def get_dataset_single_probe(
     # Transform to standardize data.
     transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - mean) / std)
 
-    mean = mean.detach().numpy()
-    std = std.detach().numpy()
+    mean = mean.detach().cpu().numpy()
+    std = std.detach().cpu().numpy()
 
     if verbose:
         print(f"Standardizing dataset with: mean={mean}, std={std}.")

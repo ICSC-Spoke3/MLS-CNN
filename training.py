@@ -63,19 +63,27 @@ def do_train(args: Inputs) -> None:
         dataset_train,
         batch_size=args.train.batch_size,
         shuffle=True,
+        #num_workers=args.n_threads,
         num_workers=0,
         drop_last=True,
+        #pin_memory=True
     )
     dataloader_val = DataLoader(
-        dataset_val, batch_size=len(dataset_val), shuffle=False, num_workers=0
+        dataset_val, batch_size=len(dataset_val), shuffle=False,
+        #num_workers=args.n_threads,
+        num_workers=0,
+        #pin_memory=True
     )
     dataloader_test = DataLoader(
-        dataset_test, batch_size=len(dataset_test), shuffle=False, num_workers=0
+        dataset_test, batch_size=len(dataset_test), shuffle=False,
+        #num_workers=args.n_threads,
+        num_workers=0,
+        #pin_memory=True
     )
 
     # Init. model.
     model = models.get_model(args, dataset_train)
-    model.compile(mode="max-autotune")
+    #model.compile(mode="max-autotune")
     model.to(device, non_blocking=True)
 
     # Model summary.
@@ -526,14 +534,14 @@ def eval_model(
 
     for X, y in dataloader:
 
-        target.append(y.detach().numpy())
+        target.append(y.detach().cpu().numpy())
 
         if send_to_device:
             if isinstance(X, list):
                 X = [elt.to(device, non_blocking=True) for elt in X]
             else:
                 X.to(device, non_blocking=True)
-        pred.append(model(X).detach().numpy())
+        pred.append(model(X).detach().cpu().numpy())
 
     n_pred = int(pred[0].shape[1] / 2)
 

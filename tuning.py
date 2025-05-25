@@ -122,16 +122,21 @@ def objective(
         dataset_train,
         batch_size=args.train.batch_size,
         shuffle=True,
+        #num_workers=args.n_threads,
         num_workers=0,
         drop_last=True,
+        #pin_memory=True,
     )
     dataloader_val = DataLoader(
-        dataset_val, batch_size=len(dataset_val), shuffle=False, num_workers=0
+        dataset_val, batch_size=len(dataset_val), shuffle=False, 
+        #num_workers=args.n_threads,
+        num_workers=0,
+        #pin_memory=True
     )
 
     # Init. model.
     model = models.get_model(args, dataset_train)
-    model.compile(mode="max-autotune")
+    #model.compile(mode="max-autotune")
     model.to(device, non_blocking=True)
 
     print(f"Trial {trial.number}:", trial.params)
