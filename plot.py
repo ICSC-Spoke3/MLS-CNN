@@ -58,7 +58,7 @@ def plot_pred_vs_target(
         plt.plot(target[:, i], target[:, i], "-k")
 
         mean_abs_rel_err = (
-            np.mean(np.abs(target[:, i] - pred[:, i] / target[:, i])) * 100
+            np.mean(np.abs((pred[:, i] - target[:, i]) / target[:, i])) * 100
         )
         mean_bias = np.mean(pred[:, i] - target[:, i])
         mean_bias_sign = np.sign(mean_bias)
@@ -67,7 +67,7 @@ def plot_pred_vs_target(
         )
         mean_bias_num2 = np.floor(np.log10(np.abs(mean_bias)))
         if plot_std:
-            chi2 = np.mean((target[:, i] - pred[:, i]) ** 2 / pred[:, n_param + i] ** 2)
+            chi2 = np.mean((pred[:, i] - target[:, i]) ** 2 / pred[:, n_param + i] ** 2)
 
         if plot_std:
             textstr = "\n".join(
