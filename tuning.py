@@ -137,6 +137,7 @@ def objective(
     # Init. model.
     model = models.get_model(args, dataset_train)
     if args.tune.compile_model:
+        torch.set_float32_matmul_precision("high")
         model.compile(mode=args.tune.compile_mode)
     model.to(device, non_blocking=True)
 
