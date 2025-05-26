@@ -202,29 +202,25 @@ def do_train(args: Inputs) -> None:
 
     # Predictions vs targets.
     ## Parameter names and labels.
+    param_labels_dict = {
+        "omega_m": r"$\Omega_{\rm m}$",
+        "sigma8": r"$\sigma_8$",
+        "S8": r"$S_8$",
+        "xlf_a": r"$a_\mathrm{BA}$",
+        "xlf_b": r"$b_\mathrm{BA}$",
+        "xlf_c": r"$c_\mathrm{BA}$",
+        "xlf_sigma": r"$\sigma_\mathrm{BA}$",
+    }
+    param_names = args.cosmo_params_names
     if args.xlum_sobol_n_models > 0:
-        param_names = ["omega_m", "sigma8", "xlf_a", "xlf_b", "xlf_c", "xlf_sigma"]
-        param_labels = [
-            r"$\Omega_{\rm m}$",
-            r"$\sigma_8$",
-            r"$a_\mathrm{BA}$",
-            r"$b_\mathrm{BA}$",
-            r"$c_\mathrm{BA}$",
-            r"$\sigma_\mathrm{BA}$",
-        ]
-    else:
-        param_names = ["omega_m", "sigma8"]
-        param_labels = [
-            r"$\Omega_{\rm m}$",
-            r"$\sigma_8$",
-        ]
+        param_names += ["xlf_a", "xlf_b", "xlf_c", "xlf_sigma"]
 
     plot.plot_pred_vs_target(
         target_train,
         pred_train,
         "training",
         param_names,
-        param_labels,
+        param_labels_dict,
         args.output_dir,
         plot_std=True,
     )
@@ -233,7 +229,7 @@ def do_train(args: Inputs) -> None:
         pred_val,
         "validation",
         param_names,
-        param_labels,
+        param_labels_dict,
         args.output_dir,
         plot_std=True,
     )
@@ -242,53 +238,98 @@ def do_train(args: Inputs) -> None:
         pred_test,
         "test",
         param_names,
-        param_labels,
+        param_labels_dict,
         args.output_dir,
         plot_std=True,
     )
 
-    # Same for S8.
-    target_train_S8 = target_train[:, 1] * np.sqrt(target_train[:, 0] / 0.3)
-    pred_train_S8 = pred_train[:, 1] * np.sqrt(pred_train[:, 0] / 0.3)
-    target_train_S8 = target_train_S8.reshape(-1, 1)
-    pred_train_S8 = pred_train_S8.reshape(-1, 1)
-    plot.plot_pred_vs_target(
-        target_train_S8,
-        pred_train_S8,
-        "training",
-        ["S8"],
-        [r"$S_8$"],
-        args.output_dir,
-        plot_std=False,
-    )
+    # Same for S8 if not in base parameters.
+    if "S8" not in param_names:
+        target_train_S8 = target_train[:, 1] * np.sqrt(target_train[:, 0] / 0.3)
+        pred_train_S8 = pred_train[:, 1] * np.sqrt(pred_train[:, 0] / 0.3)
+        target_train_S8 = target_train_S8.reshape(-1, 1)
+        pred_train_S8 = pred_train_S8.reshape(-1, 1)
+        plot.plot_pred_vs_target(
+            target_train_S8,
+            pred_train_S8,
+            "training",
+            ["S8"],
+            {"S8": r"$S_8"},
+            args.output_dir,
+            plot_std=False,
+        )
 
-    target_val_S8 = target_val[:, 1] * np.sqrt(target_val[:, 0] / 0.3)
-    pred_val_S8 = pred_val[:, 1] * np.sqrt(pred_val[:, 0] / 0.3)
-    target_val_S8 = target_val_S8.reshape(-1, 1)
-    pred_val_S8 = pred_val_S8.reshape(-1, 1)
-    plot.plot_pred_vs_target(
-        target_val_S8,
-        pred_val_S8,
-        "validation",
-        ["S8"],
-        [r"$S_8$"],
-        args.output_dir,
-        plot_std=False,
-    )
+        target_val_S8 = target_val[:, 1] * np.sqrt(target_val[:, 0] / 0.3)
+        pred_val_S8 = pred_val[:, 1] * np.sqrt(pred_val[:, 0] / 0.3)
+        target_val_S8 = target_val_S8.reshape(-1, 1)
+        pred_val_S8 = pred_val_S8.reshape(-1, 1)
+        plot.plot_pred_vs_target(
+            target_val_S8,
+            pred_val_S8,
+            "validation",
+            ["S8"],
+            {"S8": r"$S_8"},
+            args.output_dir,
+            plot_std=False,
+        )
 
-    target_test_S8 = target_test[:, 1] * np.sqrt(target_test[:, 0] / 0.3)
-    pred_test_S8 = pred_test[:, 1] * np.sqrt(pred_test[:, 0] / 0.3)
-    target_test_S8 = target_test_S8.reshape(-1, 1)
-    pred_test_S8 = pred_test_S8.reshape(-1, 1)
-    plot.plot_pred_vs_target(
-        target_test_S8,
-        pred_test_S8,
-        "test",
-        ["S8"],
-        [r"$S_8$"],
-        args.output_dir,
-        plot_std=False,
-    )
+        target_test_S8 = target_test[:, 1] * np.sqrt(target_test[:, 0] / 0.3)
+        pred_test_S8 = pred_test[:, 1] * np.sqrt(pred_test[:, 0] / 0.3)
+        target_test_S8 = target_test_S8.reshape(-1, 1)
+        pred_test_S8 = pred_test_S8.reshape(-1, 1)
+        plot.plot_pred_vs_target(
+            target_test_S8,
+            pred_test_S8,
+            "test",
+            ["S8"],
+            {"S8": r"$S_8"},
+            args.output_dir,
+            plot_std=False,
+        )
+
+    # Same for sigma8 if not in base parameters.
+    if "sigma8" not in param_names:
+        target_train_sigma8 = target_train[:, 1] / np.sqrt(target_train[:, 0] / 0.3)
+        pred_train_sigma8 = pred_train[:, 1] / np.sqrt(pred_train[:, 0] / 0.3)
+        target_train_sigma8 = target_train_sigma8.reshape(-1, 1)
+        pred_train_sigma8 = pred_train_sigma8.reshape(-1, 1)
+        plot.plot_pred_vs_target(
+            target_train_sigma8,
+            pred_train_sigma8,
+            "training",
+            ["sigma8"],
+            {"sigma8": r"$\sigma_8"},
+            args.output_dir,
+            plot_std=False,
+        )
+
+        target_val_sigma8 = target_val[:, 1] / np.sqrt(target_val[:, 0] / 0.3)
+        pred_val_sigma8 = pred_val[:, 1] / np.sqrt(pred_val[:, 0] / 0.3)
+        target_val_sigma8 = target_val_sigma8.reshape(-1, 1)
+        pred_val_sigma8 = pred_val_sigma8.reshape(-1, 1)
+        plot.plot_pred_vs_target(
+            target_val_sigma8,
+            pred_val_sigma8,
+            "validation",
+            ["sigma8"],
+            {"sigma8": r"$\sigma_8"},
+            args.output_dir,
+            plot_std=False,
+        )
+
+        target_test_sigma8 = target_test[:, 1] / np.sqrt(target_test[:, 0] / 0.3)
+        pred_test_sigma8 = pred_test[:, 1] / np.sqrt(pred_test[:, 0] / 0.3)
+        target_test_sigma8 = target_test_sigma8.reshape(-1, 1)
+        pred_test_sigma8 = pred_test_sigma8.reshape(-1, 1)
+        plot.plot_pred_vs_target(
+            target_test_sigma8,
+            pred_test_sigma8,
+            "test",
+            ["sigma8"],
+            {"sigma8": r"$\sigma_8"},
+            args.output_dir,
+            plot_std=False,
+        )
 
 
 def checkpoint(model: nn.Module, filename) -> None:

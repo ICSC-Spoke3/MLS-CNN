@@ -37,7 +37,7 @@ def plot_pred_vs_target(
     pred: npt.NDArray,
     set_name: str,
     param_names: list[str],
-    param_labels: list[str],
+    param_labels_dict: dict[str, str],
     output_dir: str,
     plot_std: bool,
 ) -> None:
@@ -103,7 +103,7 @@ def plot_pred_vs_target(
         plt.xlabel("True")
         plt.ylabel("Prediction")
 
-        plt.title(param_labels[i] + f" ({set_name} set)")
+        plt.title(param_labels_dict[name] + f" ({set_name} set)")
 
         plt.grid(True)
         plt.tight_layout()
