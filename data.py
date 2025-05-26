@@ -83,7 +83,8 @@ def read_cosmo_params(
             cosmo_params[:, i] = data[:, params_idx["sigma8"]] * np.sqrt(
                 data[:, params_idx["Omega_m"]] / 0.3
             )
-        cosmo_params[:, i] = data[:, params_idx[name]]
+        else:
+            cosmo_params[:, i] = data[:, params_idx[name]]
 
     return cosmo_params
 
