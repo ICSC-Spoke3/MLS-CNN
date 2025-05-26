@@ -57,9 +57,6 @@ def get_params_cosmo_xlum(
     return params
 
 
-model
-
-
 def read_cosmo_params(
     cosmo_params_file: str, params_names: list | None = None
 ) -> npt.NDArray:
@@ -628,6 +625,7 @@ def get_dataset_single_probe(
         generator=generator,
     )
 
+    # TODO compute by batches in case the whole dataset does not fit into the memory (RAM and/or GPU)
     # Compute mean and standard deviation of all outputs from training set.
     dataloader_train = DataLoader(dataset_train, batch_size=len(dataset_train))
 
