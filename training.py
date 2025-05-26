@@ -254,7 +254,7 @@ def do_train(args: Inputs) -> None:
             pred_train_S8,
             "training",
             ["S8"],
-            {"S8": r"$S_8"},
+            {"S8": r"$S_8$"},
             args.output_dir,
             plot_std=False,
         )
@@ -268,7 +268,7 @@ def do_train(args: Inputs) -> None:
             pred_val_S8,
             "validation",
             ["S8"],
-            {"S8": r"$S_8"},
+            {"S8": r"$S_8$"},
             args.output_dir,
             plot_std=False,
         )
@@ -282,7 +282,7 @@ def do_train(args: Inputs) -> None:
             pred_test_S8,
             "test",
             ["S8"],
-            {"S8": r"$S_8"},
+            {"S8": r"$S_8$"},
             args.output_dir,
             plot_std=False,
         )

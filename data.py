@@ -57,6 +57,9 @@ def get_params_cosmo_xlum(
     return params
 
 
+model
+
+
 def read_cosmo_params(
     cosmo_params_file: str, params_names: list | None = None
 ) -> npt.NDArray:
@@ -555,6 +558,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             overdensity=args.probes.density_field.overdensity,
             fraction=args.fraction_total,
             seed=args.split_seed,
+            lazy_loading=args.lazy_loading,
             **kwargs,
         )
 
@@ -576,6 +580,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             xlum_params_file=args.xlum_params_file,
             fraction=args.fraction_total,
             seed=args.split_seed,
+            lazy_loading=args.lazy_loading,
             **kwargs,
         )
 
@@ -598,6 +603,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             cumulative=args.probes.number_counts.cumulative,
             fraction=args.fraction_total,
             seed=args.split_seed,
+            lazy_loading=args.lazy_loading,
             **kwargs,
         )
     else:
