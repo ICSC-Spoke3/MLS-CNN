@@ -192,9 +192,9 @@ class PinocchioNumberCountsDataset(Dataset):
         self.lazy_loading = lazy_loading
 
         if not self.lazy_loading:
+            self.labels = self.labels.to(device, non_blocking=True)
             self.data = []
             for i in range(len(self.labels)):
-                self.labels[i].to(device, non_blocking=True)
                 self.data.append(self.read_data(i).to(device, non_blocking=True))
 
     def __len__(self):
@@ -310,9 +310,9 @@ class PinocchioPowerSpectrumDataset(Dataset):
         self.lazy_loading = lazy_loading
 
         if not self.lazy_loading:
+            self.labels = self.labels.to(device, non_blocking=True)
             self.data = []
             for i in range(len(self.labels)):
-                self.labels[i].to(device, non_blocking=True)
                 self.data.append(self.read_data(i).to(device, non_blocking=True))
 
     def __len__(self):
@@ -433,9 +433,9 @@ class PinocchioDensityFieldDataset(Dataset):
         self.lazy_loading = lazy_loading
 
         if not self.lazy_loading:
+            self.labels = self.labels.to(device, non_blocking=True)
             self.data = []
             for i in range(len(self.labels)):
-                self.labels[i].to(device, non_blocking=True)
                 self.data.append(self.read_data(i).to(device, non_blocking=True))
 
     def __len__(self):
@@ -654,7 +654,7 @@ def get_dataset_single_probe(
 
     # Fit StandardScaler to labels of training set.
     scaler_labels = StandardScaler()
-    scaler_labels.fit(next(iter(dataloader_train))[1])
+    scaler_labels.fit(next(iter(dataloader_train))[1].detach().cpu().numpy())
 
     if verbose:
         print(

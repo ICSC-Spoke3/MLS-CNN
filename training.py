@@ -66,7 +66,7 @@ def do_train(args: Inputs) -> None:
         shuffle=True,
         # num_workers=args.n_threads,
         num_workers=0,
-        # pin_memory=True
+        pin_memory=args.lazy_loading
     )
     dataloader_val = DataLoader(
         dataset_val,
@@ -75,7 +75,7 @@ def do_train(args: Inputs) -> None:
         shuffle=False,
         # num_workers=args.n_threads,
         num_workers=0,
-        # pin_memory=True
+        pin_memory=args.lazy_loading
     )
     dataloader_test = DataLoader(
         dataset_test,
@@ -84,7 +84,7 @@ def do_train(args: Inputs) -> None:
         shuffle=False,
         # num_workers=args.n_threads,
         num_workers=0,
-        # pin_memory=True
+        pin_memory=args.lazy_loading
     )
 
     # Init. model.
@@ -92,13 +92,16 @@ def do_train(args: Inputs) -> None:
     if args.train.compile_model:
         torch.set_float32_matmul_precision("high")
         model.compile(mode=args.train.compile_mode)
-    model.to(device, non_blocking=True)
+    model.to(device)
 
     # Model summary.
+    data_sample = next(iter(dataloader_train))[0]
+    if args.lazy_loading:
+        data_sample = data_sample.to(device)
     print(
         summary(
             model,
-            input_data=[next(iter(dataloader_train))[0]],
+            input_data=[data_sample],
             batch_dim=args.train.batch_size,
             verbose=0,
             col_names=(
@@ -360,7 +363,7 @@ def train_loop(
             if isinstance(X, list):
                 X = [elt.to(device, non_blocking=True) for elt in X]
             else:
-                X.to(device, non_blocking=True)
+                X = X.to(device, non_blocking=True)
             y = y.to(device, non_blocking=True)
 
         optimizer.zero_grad()
@@ -408,7 +411,7 @@ def train_loop(
         current_loss += loss.item()
 
         if batch % 10 == 9:
-            loss, current = loss.item(), (batch + 1) * len(X[0])
+            loss, current = loss.item(), (batch + 1) * dataloader.batch_size
             if verbose:
                 print(f"batch {batch+1} loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
@@ -436,7 +439,7 @@ def validation_loop(
                 if isinstance(X, list):
                     X = [elt.to(device, non_blocking=True) for elt in X]
                 else:
-                    X.to(device, non_blocking=True)
+                    X = X.to(device, non_blocking=True)
                 y = y.to(device, non_blocking=True)
 
             pred = model(X)
@@ -589,7 +592,7 @@ def eval_model(
             if isinstance(X, list):
                 X = [elt.to(device, non_blocking=True) for elt in X]
             else:
-                X.to(device, non_blocking=True)
+                X = X.to(device, non_blocking=True)
         pred.append(model(X).detach().cpu().numpy())
 
     n_pred = int(pred[0].shape[1] / 2)
