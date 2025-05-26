@@ -301,7 +301,7 @@ def do_train(args: Inputs) -> None:
             pred_train_sigma8,
             "training",
             ["sigma8"],
-            {"sigma8": r"$\sigma_8"},
+            {"sigma8": r"$\sigma_8$"},
             args.output_dir,
             plot_std=False,
         )
@@ -315,7 +315,7 @@ def do_train(args: Inputs) -> None:
             pred_val_sigma8,
             "validation",
             ["sigma8"],
-            {"sigma8": r"$\sigma_8"},
+            {"sigma8": r"$\sigma_8$"},
             args.output_dir,
             plot_std=False,
         )
@@ -329,7 +329,7 @@ def do_train(args: Inputs) -> None:
             pred_test_sigma8,
             "test",
             ["sigma8"],
-            {"sigma8": r"$\sigma_8"},
+            {"sigma8": r"$\sigma_8$"},
             args.output_dir,
             plot_std=False,
         )
