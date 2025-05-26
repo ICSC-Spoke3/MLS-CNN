@@ -203,7 +203,7 @@ def do_train(args: Inputs) -> None:
     # Predictions vs targets.
     ## Parameter names and labels.
     param_labels_dict = {
-        "omega_m": r"$\Omega_{\rm m}$",
+        "Omega_m": r"$\Omega_{\rm m}$",
         "sigma8": r"$\sigma_8$",
         "S8": r"$S_8$",
         "xlf_a": r"$a_\mathrm{BA}$",
