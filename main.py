@@ -34,7 +34,8 @@ def main(cli_args):
 
     input_args = Inputs(**input_args)
 
-    torch.set_num_threads(input_args.n_threads)
+    if not torch.cuda.is_available():
+        torch.set_num_threads(input_args.n_threads)
 
     print("\n-------------------------------\n")
     print(cli_args)

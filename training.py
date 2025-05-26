@@ -59,13 +59,13 @@ def do_train(args: Inputs) -> None:
     print(f"-------------------------------\n")
 
     # Init. dataloaders.
+    # TODO: use another variable than n_threads for the number of workers.
     dataloader_train = DataLoader(
         dataset_train,
         batch_size=args.train.batch_size,
         drop_last=True,
         shuffle=True,
-        # num_workers=args.n_threads,
-        num_workers=0,
+        num_workers=args.n_threads if args.lazy_loading else 0,
         pin_memory=args.lazy_loading
     )
     dataloader_val = DataLoader(
@@ -73,8 +73,7 @@ def do_train(args: Inputs) -> None:
         batch_size=args.train.batch_size,
         drop_last=False,
         shuffle=False,
-        # num_workers=args.n_threads,
-        num_workers=0,
+        num_workers=args.n_threads if args.lazy_loading else 0,
         pin_memory=args.lazy_loading
     )
     dataloader_test = DataLoader(
@@ -82,8 +81,7 @@ def do_train(args: Inputs) -> None:
         batch_size=args.train.batch_size,
         drop_last=False,
         shuffle=False,
-        # num_workers=args.n_threads,
-        num_workers=0,
+        num_workers=args.n_threads if args.lazy_loading else 0,
         pin_memory=args.lazy_loading
     )
 
