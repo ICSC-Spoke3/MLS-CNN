@@ -28,3 +28,6 @@ More examples of bash scripts to run the code in scripts/.
 
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+## Contact
+For questions or feedback, contact [inigo.saez@unimit.it](mailto:inigo.saez@unimit.it) or open an issue on GitHub.
