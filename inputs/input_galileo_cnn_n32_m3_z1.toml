@@ -95,8 +95,6 @@ mobs_min = [1e14, 5e14, 1e15]
 mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0]
-# If true, use overdensity maps instead of density maps (i.e. normalize each map individually).
-overdensity = false
 
 [probes.power_spectrum]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.

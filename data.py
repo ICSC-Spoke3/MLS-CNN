@@ -1,6 +1,11 @@
+from abc import ABC, abstractmethod
+from typing import Literal
+
 import numpy as np
 import numpy.typing as npt
 import torch
+from abacusnbody.metadata import get_meta
+from pandas import read_csv
 from rich import print
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, Dataset, random_split
@@ -9,6 +14,8 @@ from torchvision.transforms import Lambda
 from input_args import Inputs
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
+_SIM_TYPES = Literal["pinocchio", "abacus"]
 
 
 def get_params_cosmo_xlum(
@@ -33,9 +40,6 @@ def get_params_cosmo_xlum(
     # Init. final param array.
     params = np.zeros((n_models_total, ndim_total))
 
-    # Select wanted cosmo params.
-    cosmo_params = cosmo_params[cosmo_models - 1]
-
     # Repeat cosmo. params.
     cosmo_params = np.repeat(cosmo_params, n_models_xlum, axis=0)
 
@@ -58,54 +62,99 @@ def get_params_cosmo_xlum(
 
 
 def read_cosmo_params(
-    cosmo_params_file: str, params_names: list | None = None
+    cosmo_params_file: str,
+    params_names: list,
+    model_numbers: npt.NDArray,
+    sim_type: _SIM_TYPES = "pinocchio",
 ) -> npt.NDArray:
 
-    data = np.genfromtxt(cosmo_params_file)
+    cosmo_params = np.zeros((model_numbers.shape[0], len(params_names)))
 
-    if params_names is None:
-        return data
+    if sim_type == "pinocchio":
 
-    params_idx = {
-        "Omega_m": 0,
-        "sigma8": 1,
-        "h": 2,
-        "n_s": 3,
-        "Omega_b": 4,
-        "w0": 5,
-        "wa": 6,
-    }
+        data = np.genfromtxt(cosmo_params_file)
 
-    cosmo_params = np.zeros((data.shape[0], len(params_names)))
+        params_idx = {
+            "Omega_m": 0,
+            "sigma8": 1,
+            "h": 2,
+            "n_s": 3,
+            "Omega_b": 4,
+            "w0": 5,
+            "wa": 6,
+        }
 
-    for i, name in enumerate(params_names):
-        if name == "S8":
-            cosmo_params[:, i] = data[:, params_idx["sigma8"]] * np.sqrt(
-                data[:, params_idx["Omega_m"]] / 0.3
-            )
-        else:
-            cosmo_params[:, i] = data[:, params_idx[name]]
+        for i, name in enumerate(params_names):
+            if name == "S8":
+                cosmo_params[:, i] = data[
+                    model_numbers, params_idx["sigma8"]
+                ] * np.sqrt(data[model_numbers, params_idx["Omega_m"]] / 0.3)
+            else:
+                cosmo_params[:, i] = data[model_numbers, params_idx[name]]
+
+    elif sim_type == "abacus":
+
+        df = read_csv(cosmo_params_file)
+
+        params_dict = {"Omega_m": "Omega_M", "sigma8": "sigma8_m"}
+
+        for j, m in enumerate(model_numbers):
+            for i, name in enumerate(params_names):
+                if name == "Omega_m":
+                    metadata = get_meta(f"AbacusSummit_base_c{m:03}_ph000")
+                    cosmo_params[j, i] = metadata[params_dict[name]]
+                elif name == "sigma8":
+                    sigma8 = df[df.root == f"abacus_cosm{m:03}"][
+                        params_dict[name]
+                    ].array[0]
+                    cosmo_params[j, i] = sigma8
+                elif name == "S8":
+                    metadata = get_meta(f"AbacusSummit_base_c{m:03}_ph000")
+                    omega_m = metadata[params_dict[name]]
+                    sigma8 = df[df.root == f"abacus_cosm{m:03}"][
+                        params_dict[name]
+                    ].array[0]
+                    cosmo_params[j, i] = sigma8 * np.sqrt(omega_m / 0.3)
+                else:
+                    raise ValueError(f"Parameter {name} not yet supported for Abacus.")
 
     return cosmo_params
 
 
 def get_cosmo_models_numbers(
-    mobs_type: str, fraction: float = 1, seed: int | None = None
+    mobs_type: str,
+    fraction: float = 1,
+    seed: int | None = None,
+    sim_type: _SIM_TYPES = "pinocchio",
 ) -> npt.NDArray:
 
-    # First and last model number.
-    MODEL_MIN = 1
-    if mobs_type == "mass":
-        MODEL_MAX = 2048
-    else:
-        MODEL_MAX = 2048
+    if sim_type == "pinocchio":
+        # First and last model number.
+        MODEL_MIN = 1
+        if mobs_type == "mass":
+            MODEL_MAX = 2048
+        else:
+            MODEL_MAX = 2048
 
-    # Failed models.
-    FAILED_MODELS = np.array([573, 644, 693, 813, 1348, 1700, 2012])
+        # Failed models.
+        FAILED_MODELS = np.array([573, 644, 693, 813, 1348, 1700, 2012])
 
-    # List of models.
-    models = np.array([i for i in range(MODEL_MIN, MODEL_MAX + 1)])
-    models = models[~np.isin(models, FAILED_MODELS)]
+        # List of models.
+        models = np.array([i for i in range(MODEL_MIN, MODEL_MAX + 1)])
+        models = models[~np.isin(models, FAILED_MODELS)]
+
+    elif sim_type == "abacus":
+        # Fiducial.
+        models = [0]
+
+        # Linear derivative grid.
+        # TODO: add 10 missing models.
+        models += [i for i in range(100, 117)]
+
+        # Broad emulator grid.
+        models += [i for i in range(130, 182)]
+
+        models = np.array(models)
 
     # Select a fraction of models.
     if fraction < 1:
@@ -117,7 +166,102 @@ def get_cosmo_models_numbers(
     return models
 
 
-class PinocchioNumberCountsDataset(Dataset):
+class BaseDataset(ABC, Dataset):
+    def __init__(
+        self,
+        cosmo_params_file: str,
+        cosmo_params_names: list[str],
+        data_dir: str,
+        mobs_bins: npt.ArrayLike,
+        redshift: npt.ArrayLike,
+        mobs_type: str = "mass",
+        xlum_sobol_n_models=0,
+        xlum_params_file: str | None = None,
+        transform=torch.from_numpy,
+        target_transform=torch.from_numpy,
+        fraction: float = 1,
+        seed: int | None = None,
+        lazy_loading: bool = False,
+        sim_type: _SIM_TYPES = "pinocchio",
+    ) -> None:
+
+        self.sim_type = sim_type
+
+        self.data_dir = data_dir
+        self.transform = transform
+        self.target_transform = target_transform
+
+        self.mobs_bins = np.ravel(np.array([mobs_bins]))
+        self.redshift = np.ravel(np.array([redshift]))
+
+        # Number of sobol sequence models for xlum.
+        self.xlum_sobol_n_models = xlum_sobol_n_models
+
+        # Use xlum sobol sequence or not.
+        if self.xlum_sobol_n_models > 0 and mobs_type == "xlum":
+            self.xlum_sobol = True
+        else:
+            self.xlum_sobol = False
+
+        # Get models numbers.
+        self.cosmo_models = get_cosmo_models_numbers(
+            mobs_type, fraction, seed, sim_type=sim_type
+        )
+
+        # Cosmological parameters of each data file.
+        cosmo_params = read_cosmo_params(
+            cosmo_params_file, cosmo_params_names, self.cosmo_models, sim_type=sim_type
+        )
+
+        # Labels are cosmo params + xlum params.
+        if self.xlum_sobol:
+
+            if xlum_params_file is None:
+                raise ValueError("You must provide a value for `xlum_params_file`.")
+
+            self.labels = get_params_cosmo_xlum(
+                cosmo_params,
+                self.cosmo_models,
+                self.xlum_sobol_n_models,
+                xlum_params_file,
+            )
+        # No xlum parameters in the labels.
+        else:
+            self.labels = cosmo_params
+
+        self.labels = self.target_transform(self.labels).type(torch.float32)
+
+        self.mobs_type = mobs_type
+
+        self.lazy_loading = lazy_loading
+
+        if not self.lazy_loading:
+            self.labels = self.labels.to(device, non_blocking=True)
+            self.data = []
+            for i in range(len(self.labels)):
+                self.data.append(self.read_data(i).to(device, non_blocking=True))
+
+    def __len__(self):
+
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+
+        if self.lazy_loading:
+            data = self.read_data(idx)
+        else:
+            data = self.data[idx]
+
+        label = self.labels[idx]
+
+        return data, label
+
+    @abstractmethod
+    def read_data(self, idx) -> torch.Tensor:
+        pass
+
+
+class NumberCountsDataset(BaseDataset):
 
     def __init__(
         self,
@@ -135,6 +279,7 @@ class PinocchioNumberCountsDataset(Dataset):
         fraction: float = 1,
         seed: int | None = None,
         lazy_loading: bool = False,
+        sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
 
         if not cumulative:
@@ -142,75 +287,22 @@ class PinocchioNumberCountsDataset(Dataset):
                 "differential mass bins for number counts not yet implemented."
             )
 
-        self.data_dir = data_dir
-        self.transform = transform
-        self.target_transform = target_transform
-
-        self.mobs_min = np.ravel(np.array([mobs_bins]))
-        self.redshift = np.ravel(np.array([redshift]))
-
-        # Number of sobol sequence models for xlum.
-        self.xlum_sobol_n_models = xlum_sobol_n_models
-
-        # Use xlum sobol sequence or not.
-        if self.xlum_sobol_n_models > 0 and mobs_type == "xlum":
-            self.xlum_sobol = True
-        else:
-            self.xlum_sobol = False
-
-        # Get models numbers.
-        self.cosmo_models = get_cosmo_models_numbers(mobs_type, fraction, seed)
-
-        # Cosmological parameters of each data file.
-        cosmo_params = read_cosmo_params(cosmo_params_file, cosmo_params_names)
-
-        # Labels are cosmo params + xlum params.
-        if self.xlum_sobol:
-
-            if xlum_params_file is None:
-                raise ValueError("You must provide a value for `xlum_params_file`.")
-
-            self.labels = get_params_cosmo_xlum(
-                cosmo_params,
-                self.cosmo_models,
-                self.xlum_sobol_n_models,
-                xlum_params_file,
-            )
-        # No xlum parameters in the labels.
-        else:
-            self.labels = cosmo_params[self.cosmo_models - 1, :]
-
-        self.labels = self.target_transform(self.labels).type(torch.float32)
-
-        if mobs_type == "mass":
-            self.mobs_flag = "mass"
-        elif mobs_type == "xlum":
-            self.mobs_flag = "xlum"
-        else:
-            raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
-
-        self.lazy_loading = lazy_loading
-
-        if not self.lazy_loading:
-            self.labels = self.labels.to(device, non_blocking=True)
-            self.data = []
-            for i in range(len(self.labels)):
-                self.data.append(self.read_data(i).to(device, non_blocking=True))
-
-    def __len__(self):
-
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-
-        if self.lazy_loading:
-            data = self.read_data(idx)
-        else:
-            data = self.data[idx]
-
-        label = self.labels[idx]
-
-        return data, label
+        super(NumberCountsDataset, self).__init__(
+            cosmo_params_file,
+            cosmo_params_names,
+            data_dir,
+            mobs_bins,
+            redshift,
+            mobs_type=mobs_type,
+            xlum_sobol_n_models=xlum_sobol_n_models,
+            xlum_params_file=xlum_params_file,
+            transform=transform,
+            target_transform=target_transform,
+            fraction=fraction,
+            seed=seed,
+            lazy_loading=lazy_loading,
+            sim_type=sim_type,
+        )
 
     def read_data(self, idx):
 
@@ -225,13 +317,13 @@ class PinocchioNumberCountsDataset(Dataset):
         for z in self.redshift:
 
             if self.xlum_sobol:
-                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.number_counts.dat"
+                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.number_counts.dat"
             else:
-                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.number_counts.dat"
+                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.number_counts.dat"
 
             data_tmp = np.genfromtxt(data_path)
 
-            for m in self.mobs_min:
+            for m in self.mobs_bins:
                 data.append(np.log10(1 + data_tmp[data_tmp[:, 0] == m, 1]))
 
         data = np.ravel(data)
@@ -241,14 +333,14 @@ class PinocchioNumberCountsDataset(Dataset):
         return data
 
 
-class PinocchioPowerSpectrumDataset(Dataset):
+class PowerSpectrumDataset(BaseDataset):
 
     def __init__(
         self,
         cosmo_params_file: str,
         cosmo_params_names: list[str],
         data_dir: str,
-        mobs_min: npt.ArrayLike,
+        mobs_bins: npt.ArrayLike,
         redshift: npt.ArrayLike,
         mobs_type: str = "mass",
         xlum_sobol_n_models=0,
@@ -258,77 +350,25 @@ class PinocchioPowerSpectrumDataset(Dataset):
         fraction: float = 1,
         seed: int | None = None,
         lazy_loading: bool = False,
+        sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
 
-        self.data_dir = data_dir
-        self.transform = transform
-        self.target_transform = target_transform
-
-        self.mobs_min = np.ravel(np.array([mobs_min]))
-        self.redshift = np.ravel(np.array([redshift]))
-
-        # Number of sobol sequence models for xlum.
-        self.xlum_sobol_n_models = xlum_sobol_n_models
-
-        # Use xlum sobol sequence or not.
-        if self.xlum_sobol_n_models > 0 and mobs_type == "xlum":
-            self.xlum_sobol = True
-        else:
-            self.xlum_sobol = False
-
-        # Get cosmo models numbers.
-        self.cosmo_models = get_cosmo_models_numbers(mobs_type, fraction, seed)
-
-        # Cosmological parameters of each data file.
-        cosmo_params = read_cosmo_params(cosmo_params_file, cosmo_params_names)
-
-        # Labels are cosmo params + xlum params.
-        if self.xlum_sobol:
-
-            if xlum_params_file is None:
-                raise ValueError("You must provide a value for `xlum_params_file`.")
-
-            self.labels = get_params_cosmo_xlum(
-                cosmo_params,
-                self.cosmo_models,
-                self.xlum_sobol_n_models,
-                xlum_params_file,
-            )
-        # No xlum parameters in the labels.
-        else:
-            self.labels = cosmo_params[self.cosmo_models - 1, :]
-
-        self.labels = self.target_transform(self.labels).type(torch.float32)
-
-        if mobs_type == "mass":
-            self.mobs_flag = "cut_mass"
-        elif mobs_type == "xlum":
-            self.mobs_flag = "cut_xlum"
-        else:
-            raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
-
-        self.lazy_loading = lazy_loading
-
-        if not self.lazy_loading:
-            self.labels = self.labels.to(device, non_blocking=True)
-            self.data = []
-            for i in range(len(self.labels)):
-                self.data.append(self.read_data(i).to(device, non_blocking=True))
-
-    def __len__(self):
-
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-
-        if self.lazy_loading:
-            data = self.read_data(idx)
-        else:
-            data = self.data[idx]
-
-        label = self.labels[idx]
-
-        return data, label
+        super(PowerSpectrumDataset, self).__init__(
+            cosmo_params_file,
+            cosmo_params_names,
+            data_dir,
+            mobs_bins,
+            redshift,
+            mobs_type=mobs_type,
+            xlum_sobol_n_models=xlum_sobol_n_models,
+            xlum_params_file=xlum_params_file,
+            transform=transform,
+            target_transform=target_transform,
+            fraction=fraction,
+            seed=seed,
+            lazy_loading=lazy_loading,
+            sim_type=sim_type,
+        )
 
     def read_data(self, idx):
 
@@ -343,15 +383,17 @@ class PinocchioPowerSpectrumDataset(Dataset):
         for z in self.redshift:
 
             if self.xlum_sobol:
-                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.power_spectrum.npz"
+                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.power_spectrum.npz"
             else:
-                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.power_spectrum.npz"
+                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.power_spectrum.npz"
 
             with np.load(data_path) as data_read:
 
-                for m in self.mobs_min:
+                for m in self.mobs_bins:
 
-                    data.append(np.log10(1 + data_read[f"{self.mobs_flag}_{m:.1e}"]))
+                    data.append(
+                        np.log10(1 + data_read[f"cut_{self.mobs_type}_{m:.1e}"])
+                    )
 
         data = np.ravel(data)
 
@@ -360,98 +402,42 @@ class PinocchioPowerSpectrumDataset(Dataset):
         return data
 
 
-class PinocchioDensityFieldDataset(Dataset):
+class DensityFieldDataset(BaseDataset):
 
     def __init__(
         self,
         cosmo_params_file: str,
         cosmo_params_names: list[str],
         data_dir: str,
-        mobs_min: npt.ArrayLike,
+        mobs_bins: npt.ArrayLike,
         redshift: npt.ArrayLike,
         mobs_type: str = "mass",
         xlum_sobol_n_models=0,
         xlum_params_file: str | None = None,
-        overdensity=False,
         transform=torch.from_numpy,
         target_transform=torch.from_numpy,
         fraction: float = 1,
         seed: int | None = None,
         lazy_loading: bool = False,
+        sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
 
-        self.data_dir = data_dir
-        self.transform = transform
-        self.target_transform = target_transform
-
-        self.mobs_min = np.ravel(np.array([mobs_min]))
-        self.redshift = np.ravel(np.array([redshift]))
-
-        # If True, use overdensity of objects instead of density.
-        self.overdensity = overdensity
-
-        # Number of sobol sequence models for xlum.
-        self.xlum_sobol_n_models = xlum_sobol_n_models
-
-        # Use xlum sobol sequence or not.
-        if self.xlum_sobol_n_models > 0 and mobs_type == "xlum":
-            self.xlum_sobol = True
-        else:
-            self.xlum_sobol = False
-
-        # Get cosmo models numbers.
-        self.cosmo_models = get_cosmo_models_numbers(mobs_type, fraction, seed)
-
-        # Cosmological parameters of each data file.
-        cosmo_params = read_cosmo_params(cosmo_params_file, cosmo_params_names)
-
-        # Labels are cosmo params + xlum params.
-        if self.xlum_sobol:
-
-            if xlum_params_file is None:
-                raise ValueError("You must provide a value for `xlum_params_file`.")
-
-            self.labels = get_params_cosmo_xlum(
-                cosmo_params,
-                self.cosmo_models,
-                self.xlum_sobol_n_models,
-                xlum_params_file,
-            )
-        # No xlum parameters in the labels.
-        else:
-            self.labels = cosmo_params[self.cosmo_models - 1, :]
-
-        self.labels = self.target_transform(self.labels).type(torch.float32)
-
-        if mobs_type == "mass":
-            self.mobs_flag = "cut_mass"
-        elif mobs_type == "xlum":
-            self.mobs_flag = "cut_xlum"
-        else:
-            raise ValueError("Wrong value for mobs_type. Must be one of: mass, xlum.")
-
-        self.lazy_loading = lazy_loading
-
-        if not self.lazy_loading:
-            self.labels = self.labels.to(device, non_blocking=True)
-            self.data = []
-            for i in range(len(self.labels)):
-                self.data.append(self.read_data(i).to(device, non_blocking=True))
-
-    def __len__(self):
-
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-
-        if self.lazy_loading:
-            data = self.read_data(idx)
-        else:
-            data = self.data[idx]
-
-        label = self.labels[idx]
-
-        return data, label
+        super(DensityFieldDataset, self).__init__(
+            cosmo_params_file,
+            cosmo_params_names,
+            data_dir,
+            mobs_bins,
+            redshift,
+            mobs_type=mobs_type,
+            xlum_sobol_n_models=xlum_sobol_n_models,
+            xlum_params_file=xlum_params_file,
+            transform=transform,
+            target_transform=target_transform,
+            fraction=fraction,
+            seed=seed,
+            lazy_loading=lazy_loading,
+            sim_type=sim_type,
+        )
 
     def read_data(self, idx):
 
@@ -461,24 +447,27 @@ class PinocchioDensityFieldDataset(Dataset):
         else:
             cm_idx = idx
 
+        if self.sim_type == "pinocchio":
+            model_id = (
+                f"model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}"
+            )
+        elif self.sim_type == "abacus":
+            model_id = f"model{self.cosmo_models[cm_idx]:05}_00000"
+
         data = []
 
         for z in self.redshift:
 
             if self.xlum_sobol:
-                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.density_field.npz"
+                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.{model_id}_{xm_idx}.density_field.npz"
             else:
-                data_path = f"{self.data_dir}/{self.mobs_flag}/z_{z:.4f}/pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.density_field.npz"
+                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.{model_id}.density_field.npz"
 
             with np.load(data_path) as data_read:
 
-                for m in self.mobs_min:
+                for m in self.mobs_bins:
 
-                    data_tmp = data_read[f"{self.mobs_flag}_{m:.1e}"]
-
-                    if self.overdensity:
-                        data_tmp /= np.mean(data_tmp)
-                        data_tmp -= 1
+                    data_tmp = data_read[f"cut_{self.mobs_type}_{m:.1e}"]
 
                     data_tmp = np.log10(1 + data_tmp)
 
@@ -510,7 +499,7 @@ class PinocchioDensityFieldDataset(Dataset):
 
 class MultiProbeDataset(Dataset):
 
-    def __init__(self, dataset_list: list[PinocchioDensityFieldDataset]) -> None:
+    def __init__(self, dataset_list: list[DensityFieldDataset]) -> None:
 
         super().__init__()
 
@@ -543,7 +532,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
         if verbose:
             print(f"Reading data for probe={probe} from {data_dir}.")
 
-        dataset = PinocchioDensityFieldDataset(
+        dataset = DensityFieldDataset(
             args.cosmo_params_file,
             args.cosmo_params_names,
             data_dir,
@@ -552,7 +541,6 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             mobs_type=args.probes.density_field.mobs_type,
             xlum_sobol_n_models=args.xlum_sobol_n_models,
             xlum_params_file=args.xlum_params_file,
-            overdensity=args.probes.density_field.overdensity,
             fraction=args.fraction_total,
             seed=args.split_seed,
             lazy_loading=args.lazy_loading,
@@ -566,7 +554,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
         if verbose:
             print(f"Reading data for probe={probe} from {data_dir}.")
 
-        dataset = PinocchioPowerSpectrumDataset(
+        dataset = PowerSpectrumDataset(
             args.cosmo_params_file,
             args.cosmo_params_names,
             data_dir,
@@ -588,7 +576,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
         if verbose:
             print(f"Reading data for probe={probe} from {data_dir}.")
 
-        dataset = PinocchioNumberCountsDataset(
+        dataset = NumberCountsDataset(
             args.cosmo_params_file,
             args.cosmo_params_names,
             data_dir,

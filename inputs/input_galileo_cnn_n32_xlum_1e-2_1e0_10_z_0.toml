@@ -97,8 +97,6 @@ mobs_min = [0.01, 0.017, 0.028, 0.046, 0.077, 0.13, 0.22, 0.36, 0.6, 1]
 mobs_type = "xlum"
 # List of redshifts (snapshots).
 redshift = [0]
-# If true, use overdensity maps instead of density maps (i.e. normalize each map individually).
-overdensity = false
 
 [probes.power_spectrum]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
@@ -132,8 +130,6 @@ study_name = "mystudy"
 
 # Resume from previous study with same name if it exists.
 resume = true
-# Delete previous study with same name.
-delete_previous = false
 
 # Number of trials per process.
 trials = 5
