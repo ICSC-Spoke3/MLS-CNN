@@ -14,6 +14,17 @@ Tested with python 3.12.
 
 # Usage
 
-Examples of input parameter files in inputs/.
+An example input file to train the CNN is provided and can be used as:
 
-Examples of bash scripts to run the code in scripts/.
+``` bash
+python main.py train -n 1 -f examples/input_cnn_xlum_example.toml -o examples/
+```
+
+**_NOTE:_** The required training dataset is not yet available. It will be made public soon.
+
+More examples of input parameter files in inputs/.
+
+More examples of bash scripts to run the code in scripts/.
+
+## License
+This project is licensed under the MIT License. See the `LICENSE` file for details.
