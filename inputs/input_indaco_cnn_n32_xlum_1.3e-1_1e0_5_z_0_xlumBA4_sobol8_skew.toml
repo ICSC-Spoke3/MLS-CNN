@@ -7,7 +7,7 @@ cosmo_params_names = ["Omega_m", "sigma8"] # Not full support for other paramete
 # If equal to zero, use only the fiducial model.
 # If different from zero, use models from the sobol sequence.
 # Only used if mobs_type="xlum" for at least one of the considered probes.
-xlum_sobol_n_models = 8
+xlum_sobol_n_models = 4
 # File with the values of the X-ray illumination parameters.
 xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples_Nmodels_8samples_6sigma.npz"
 
@@ -50,7 +50,7 @@ patience_early_stopping_factor = 2.5
 
 # Include a constraint on the skewness in the loss.
 # Ignored if gauss_nllloss=true.
-loss_skew = false
+loss_skew = true
 # Include a constraint on the kurtosis in the loss. WARNING: not fully implemented. Needs to be checked.
 # Ignored if gauss_nllloss=true.
 loss_kurt = false
@@ -179,7 +179,7 @@ compile_model = true
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 50
+trials = 100
 # Maximum number of epochs for each trial.
 n_epochs = 300
 

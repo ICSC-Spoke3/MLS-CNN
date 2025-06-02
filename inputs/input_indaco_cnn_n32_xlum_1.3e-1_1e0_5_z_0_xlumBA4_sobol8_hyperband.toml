@@ -14,8 +14,8 @@ xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples
 # Fraction of the total dataset to be used.
 fraction_total = 1
 # Validation and test datasets fractions (applied after fraction_total).
-fraction_validation = 0.1
-fraction_test = 0.1
+fraction_validation = 0.25
+fraction_test = 0.05
 # Seed used to split datasets and select fractions.
 split_seed = 1234
 
@@ -184,11 +184,11 @@ trials = 50
 n_epochs = 300
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
-pruner = "median"
+pruner = "hyperband"
 
 # Parameters for median pruner (see optuna documentation).
 median_n_startup_trials = 5
-median_n_warmup_steps = 5
+median_n_warmup_steps = 0
 median_n_min_trials = 1
 
 # Parameters for hyperband pruner (see optuna documentation).
@@ -211,13 +211,13 @@ log = true
 
 [tune.beta_1]
 
-low = 0.85
-high = 0.999
+low = 0
+high = 1
 
 [tune.beta_2]
 
-low = 0.99
-high = 0.9999
+low = 0
+high = 1
 
 [tune.eps]
 
@@ -239,7 +239,7 @@ step = 1
 
 low = 50
 high = 1000
-step = 100
+step = 50
 
 [tune.ps_fc_layers]
 
@@ -251,7 +251,7 @@ step = 1
 
 low = 50
 high = 1000
-step = 100
+step = 50
 
 [tune.nc_fc_layers]
 
@@ -263,7 +263,7 @@ step = 1
 
 low = 50
 high = 1000
-step = 100
+step = 50
 
 [tune.density_field_n_channels_base]
 
@@ -273,7 +273,7 @@ high = 10
 [tune.dropout]
 
 low = 0
-high = 0.5
+high = 1
 
 [tune.reduce_on_plateau_factor]
 

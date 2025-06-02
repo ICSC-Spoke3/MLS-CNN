@@ -33,7 +33,7 @@ lazy_loading = false
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the training phase, and not the HP tuning.
 # See below for the HP tuning phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
@@ -103,13 +103,12 @@ nc_fc_units_per_layer = 128
 # Parameters for the density_field convolutional block.
 density_field_n_channels_base = 1
 
-
 [probes]
 # These parameters control the cosmological probes that are used for inference.
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["density_field"]
+probe_list = ["number_counts"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_sobol_ndim2"
@@ -120,12 +119,9 @@ data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_s
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_3D_tsc_n32_norsd"
-# List of minimum mass/luminosity thresholds.
+data_dir = "/astro/inigosaez/mls/pinocchio_observables/L1500_N750_sobol_ndim2/density_field_3D_tsc_n32_norsd/"
+# List of minimum mass thresholds.
 mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
-# Use mass or luminosity cuts.
-# mass: "mass"
-# luminosity: "xlum"
 mobs_type = "xlum"
 # List of redshifts (snapshots).
 redshift = [0]
@@ -133,15 +129,12 @@ redshift = [0]
 overdensity = false
 
 [probes.power_spectrum]
-# Power spectrum from different mass/luminosity thresholds and redshifts are concatenated into a single 1D array.
+# Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
 
-# Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "power_spectrum_tsc_n128_norsd"
-# List of minimum mass/luminosity thresholds.
+# Root directory with the data. Different mass cuts and redshifts are in sub-directories.
+data_dir = "/astro/inigosaez/mls/pinocchio_observables/L1500_N750_sobol_ndim2/power_spectrum_TSC_n128_norsd"
+# List of minimum mass thresholds.
 mobs_min = [1e14]
-# Use mass or luminosity cuts.
-# mass: "mass"
-# luminosity: "xlum"
 mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0]
@@ -152,11 +145,11 @@ redshift = [0]
 # Directory with the data relative to data_dir_root. Different redshifts are in sub-directories.
 data_dir = "number_counts"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [1e14, 5e14, 1e15]
+mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
-mobs_type = "mass"
+mobs_type = "xlum"
 # List of redshifts (snapshots).
 redshift = [0]
 # If true, use cumulative mass bins. If false, use differential mass bins. WARNING: not yet fully implemented.
@@ -174,12 +167,12 @@ resume = true
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 50
+trials = 100
 # Maximum number of epochs for each trial.
 n_epochs = 300
 
@@ -194,8 +187,6 @@ median_n_min_trials = 1
 # Parameters for hyperband pruner (see optuna documentation).
 hyperband_min_resource = 10
 hyperband_reduction_factor = 3
-
-# Search space for all the tunable hyperparameters.
 
 [tune.learning_rate]
 
@@ -237,7 +228,7 @@ step = 1
 
 [tune.regressor_fc_units_per_layer]
 
-low = 50
+low = 100
 high = 1000
 step = 100
 
@@ -249,7 +240,7 @@ step = 1
 
 [tune.ps_fc_units_per_layer]
 
-low = 50
+low = 100
 high = 1000
 step = 100
 
@@ -261,7 +252,7 @@ step = 1
 
 [tune.nc_fc_units_per_layer]
 
-low = 50
+low = 100
 high = 1000
 step = 100
 
