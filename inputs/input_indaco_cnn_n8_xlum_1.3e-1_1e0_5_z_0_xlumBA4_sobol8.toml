@@ -33,7 +33,7 @@ lazy_loading = false
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the training phase, and not the HP tuning.
 # See below for the HP tuning phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
@@ -120,7 +120,7 @@ data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_s
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_3D_tsc_n32_norsd"
+data_dir = "density_field_3D_tsc_n8_norsd"
 # List of minimum mass/luminosity thresholds.
 mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # Use mass or luminosity cuts.
@@ -129,6 +129,8 @@ mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 mobs_type = "xlum"
 # List of redshifts (snapshots).
 redshift = [0]
+# If true, use overdensity maps instead of density maps (i.e. normalize each map individually).
+overdensity = false
 
 [probes.power_spectrum]
 # Power spectrum from different mass/luminosity thresholds and redshifts are concatenated into a single 1D array.
@@ -172,12 +174,12 @@ resume = true
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 50
+trials = 200
 # Maximum number of epochs for each trial.
 n_epochs = 300
 
