@@ -1,7 +1,7 @@
 [project]
 name = "mls-cnn"
 version = "0.1.0"
-description = "Add your description here"
+description = "Code to extract cosmological parameters from cosmological surveys using Convolutional Neural Networks."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
