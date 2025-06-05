@@ -20,7 +20,7 @@ An example input file to train the CNN is provided and can be used as:
 python main.py train -n 1 -f examples/input_cnn_xlum_example.toml -o examples/
 ```
 
-**_NOTE:_** The required training dataset is not yet available. It will be made public soon.
+**_NOTE:_** The required training dataset is not yet available. It will be made public soon (from zenodo).
 
 More examples of input parameter files in inputs/.
 
