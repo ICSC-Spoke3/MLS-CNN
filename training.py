@@ -159,6 +159,9 @@ def do_train(args: Inputs) -> None:
         gauss_nllloss=args.train.gauss_nllloss,
     )
 
+    if args.verbose:
+        print("Making plots and saving results...")
+
     # Plot history.
     plot.plot_training_history(
         train_history,
@@ -336,6 +339,9 @@ def do_train(args: Inputs) -> None:
             args.output_dir,
             plot_std=False,
         )
+
+    if args.verbose:
+        print("...done!")
 
 
 def checkpoint(model: nn.Module, filename) -> None:
