@@ -66,7 +66,7 @@ def do_train(args: Inputs) -> None:
         drop_last=True,
         shuffle=True,
         num_workers=args.n_threads if args.lazy_loading else 0,
-        pin_memory=args.lazy_loading
+        pin_memory=args.lazy_loading,
     )
     dataloader_val = DataLoader(
         dataset_val,
@@ -74,7 +74,7 @@ def do_train(args: Inputs) -> None:
         drop_last=False,
         shuffle=False,
         num_workers=args.n_threads if args.lazy_loading else 0,
-        pin_memory=args.lazy_loading
+        pin_memory=args.lazy_loading,
     )
     dataloader_test = DataLoader(
         dataset_test,
@@ -82,7 +82,7 @@ def do_train(args: Inputs) -> None:
         drop_last=False,
         shuffle=False,
         num_workers=args.n_threads if args.lazy_loading else 0,
-        pin_memory=args.lazy_loading
+        pin_memory=args.lazy_loading,
     )
 
     # Init. model.
@@ -207,6 +207,11 @@ def do_train(args: Inputs) -> None:
         "Omega_m": r"$\Omega_{\rm m}$",
         "sigma8": r"$\sigma_8$",
         "S8": r"$S_8$",
+        "h": r"$h$",
+        "n_s": r"$n_s$",
+        "Omega_b": r"$\Omega_{\rm b}$",
+        "w0": r"$w_0$",
+        "wa": r"$w_a$",
         "xlf_a": r"$a_\mathrm{BA}$",
         "xlf_b": r"$b_\mathrm{BA}$",
         "xlf_c": r"$c_\mathrm{BA}$",

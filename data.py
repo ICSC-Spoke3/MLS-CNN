@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -11,11 +10,9 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.transforms import Lambda
 
-from input_args import Inputs
+from input_args import Inputs, _SIM_TYPES
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
-_SIM_TYPES = Literal["pinocchio", "abacus"]
 
 
 def get_params_cosmo_xlum(
@@ -63,18 +60,16 @@ def get_params_cosmo_xlum(
 
 def read_cosmo_params(
     cosmo_params_file: str,
-    params_names: list,
+    params_names: list[str],
     model_numbers: npt.NDArray,
     sim_type: _SIM_TYPES = "pinocchio",
 ) -> npt.NDArray:
 
     cosmo_params = np.zeros((model_numbers.shape[0], len(params_names)))
 
-    if sim_type == "pinocchio":
+    if sim_type == "pinocchio" or sim_type == "pinocchio_lcdm":
 
-        data = np.genfromtxt(cosmo_params_file)
-
-        params_idx = {
+        params_idx_pinocchio = {
             "Omega_m": 0,
             "sigma8": 1,
             "h": 2,
@@ -84,13 +79,17 @@ def read_cosmo_params(
             "wa": 6,
         }
 
+        data = np.genfromtxt(cosmo_params_file)
+
         for i, name in enumerate(params_names):
             if name == "S8":
                 cosmo_params[:, i] = data[
-                    model_numbers, params_idx["sigma8"]
-                ] * np.sqrt(data[model_numbers, params_idx["Omega_m"]] / 0.3)
+                    model_numbers, params_idx_pinocchio["sigma8"]
+                ] * np.sqrt(
+                    data[model_numbers - 1, params_idx_pinocchio["Omega_m"]] / 0.3
+                )
             else:
-                cosmo_params[:, i] = data[model_numbers, params_idx[name]]
+                cosmo_params[:, i] = data[model_numbers - 1, params_idx_pinocchio[name]]
 
     elif sim_type == "abacus":
 
@@ -122,7 +121,6 @@ def read_cosmo_params(
 
 
 def get_cosmo_models_numbers(
-    mobs_type: str,
     fraction: float = 1,
     seed: int | None = None,
     sim_type: _SIM_TYPES = "pinocchio",
@@ -131,13 +129,22 @@ def get_cosmo_models_numbers(
     if sim_type == "pinocchio":
         # First and last model number.
         MODEL_MIN = 1
-        if mobs_type == "mass":
-            MODEL_MAX = 2048
-        else:
-            MODEL_MAX = 2048
+        MODEL_MAX = 2048
 
         # Failed models.
         FAILED_MODELS = np.array([573, 644, 693, 813, 1348, 1700, 2012])
+
+        # List of models.
+        models = np.array([i for i in range(MODEL_MIN, MODEL_MAX + 1)])
+        models = models[~np.isin(models, FAILED_MODELS)]
+
+    elif sim_type == "pinocchio_lcdm":
+        # First and last model number.
+        MODEL_MIN = 1
+        MODEL_MAX = 512
+
+        # Failed models.
+        FAILED_MODELS = np.array([])
 
         # List of models.
         models = np.array([i for i in range(MODEL_MIN, MODEL_MAX + 1)])
@@ -148,8 +155,7 @@ def get_cosmo_models_numbers(
         models = [0]
 
         # Linear derivative grid.
-        # TODO: add 10 missing models.
-        models += [i for i in range(100, 117)]
+        models += [i for i in range(100, 127)]
 
         # Broad emulator grid.
         models += [i for i in range(130, 182)]
@@ -204,9 +210,7 @@ class BaseDataset(ABC, Dataset):
             self.xlum_sobol = False
 
         # Get models numbers.
-        self.cosmo_models = get_cosmo_models_numbers(
-            mobs_type, fraction, seed, sim_type=sim_type
-        )
+        self.cosmo_models = get_cosmo_models_numbers(fraction, seed, sim_type=sim_type)
 
         # Cosmological parameters of each data file.
         cosmo_params = read_cosmo_params(
@@ -391,9 +395,10 @@ class PowerSpectrumDataset(BaseDataset):
 
                 for m in self.mobs_bins:
 
-                    data.append(
-                        np.log10(1 + data_read[f"cut_{self.mobs_type}_{m:.1e}"])
-                    )
+                    # data.append(
+                    #     np.log10(1 + data_read[f"cut_{self.mobs_type}_{m:.1e}"])
+                    # )
+                    data.append(np.log10(1 + data_read[f"{self.mobs_type}_{m:.1e}"]))
 
         data = np.ravel(data)
 
@@ -444,30 +449,27 @@ class DensityFieldDataset(BaseDataset):
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
             xm_idx = idx % self.xlum_sobol_n_models
+            xm_suffix = f"_{xm_idx}"
         else:
             cm_idx = idx
+            xm_suffix = ""
 
-        if self.sim_type == "pinocchio":
-            model_id = (
-                f"model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}"
-            )
+        if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
+            filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.density_field.npz"
         elif self.sim_type == "abacus":
-            model_id = f"model{self.cosmo_models[cm_idx]:05}_00000"
+            filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.density_field.npz"
 
         data = []
 
         for z in self.redshift:
 
-            if self.xlum_sobol:
-                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.{model_id}_{xm_idx}.density_field.npz"
-            else:
-                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.{model_id}.density_field.npz"
+            data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{filename}"
 
             with np.load(data_path) as data_read:
 
                 for m in self.mobs_bins:
 
-                    data_tmp = data_read[f"cut_{self.mobs_type}_{m:.1e}"]
+                    data_tmp = data_read[f"{self.mobs_type}_{m:.1e}"]
 
                     data_tmp = np.log10(1 + data_tmp)
 
@@ -544,6 +546,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             fraction=args.fraction_total,
             seed=args.split_seed,
             lazy_loading=args.lazy_loading,
+            sim_type=args.sim_type,
             **kwargs,
         )
 
@@ -566,6 +569,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             fraction=args.fraction_total,
             seed=args.split_seed,
             lazy_loading=args.lazy_loading,
+            sim_type=args.sim_type,
             **kwargs,
         )
 
@@ -589,6 +593,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             fraction=args.fraction_total,
             seed=args.split_seed,
             lazy_loading=args.lazy_loading,
+            sim_type=args.sim_type,
             **kwargs,
         )
     else:

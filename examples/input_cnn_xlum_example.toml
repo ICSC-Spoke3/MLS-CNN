@@ -1,5 +1,11 @@
+# Simulation type. Possible values:
+# "pinocchio": Pinocchio mocks varying only Omega_m and sigma8.
+# "pinocchio_lcdm": Pinocchio mocks varying all flat LCDM parameters (wo neutrinos): Omega_m, sigma8, ns, h, Omega_b
+# "abacus": Abacus simulations (not fully supported for training the network.)
+sim_type = "pinocchio"
+
 # Names of the cosmological parameters used for inference.
-cosmo_params_names = ["Omega_m", "sigma8"] # Not full support for other parameters yet.
+cosmo_params_names = ["Omega_m", "sigma8"]
 # File with the values of the cosmological parameters for each simulation.
 cosmo_params_file = "mls_dataset_example/models_parameters_cosmo_sobol_ndim2.txt"
 

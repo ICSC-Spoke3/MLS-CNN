@@ -4,6 +4,8 @@ from typing import Literal
 import optuna
 from pydantic import BaseModel, ConfigDict
 
+_SIM_TYPES = Literal["pinocchio", "abacus", "pinocchio_lcdm"]
+
 
 def get_cli_args():
 
@@ -212,6 +214,8 @@ class Inputs(BaseModel):
 
     output_dir: str = "./"
     n_threads: int = 1
+
+    sim_type: _SIM_TYPES
 
     cosmo_params_file: str
     cosmo_params_names: list[str]
