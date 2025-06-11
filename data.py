@@ -95,25 +95,38 @@ def read_cosmo_params(
 
         df = read_csv(cosmo_params_file)
 
-        params_dict = {"Omega_m": "Omega_M", "sigma8": "sigma8_m"}
+        params_dict_cosmo_file = {
+            "sigma8": "sigma8_m",
+            "h": "h",
+            "n_s": "n_s",
+        }
 
         for j, m in enumerate(model_numbers):
+
+            metadata = get_meta(f"AbacusSummit_base_c{m:03}_ph000")
+
             for i, name in enumerate(params_names):
+
                 if name == "Omega_m":
-                    metadata = get_meta(f"AbacusSummit_base_c{m:03}_ph000")
-                    cosmo_params[j, i] = metadata[params_dict[name]]
-                elif name == "sigma8":
-                    sigma8 = df[df.root == f"abacus_cosm{m:03}"][
-                        params_dict[name]
+                    cosmo_params[j, i] = metadata["Omega_M"]
+
+                elif name in params_dict_cosmo_file:
+                    cosmo_params[j, i] = df[df.root == f"abacus_cosm{m:03}"][
+                        params_dict_cosmo_file[name]
                     ].array[0]
-                    cosmo_params[j, i] = sigma8
+
                 elif name == "S8":
-                    metadata = get_meta(f"AbacusSummit_base_c{m:03}_ph000")
-                    omega_m = metadata[params_dict[name]]
+                    omega_m = metadata["Omega_M"]
                     sigma8 = df[df.root == f"abacus_cosm{m:03}"][
-                        params_dict[name]
+                        params_dict_cosmo_file["sigma8"]
                     ].array[0]
                     cosmo_params[j, i] = sigma8 * np.sqrt(omega_m / 0.3)
+
+                elif name == "Omega_b":
+                    omegabh2 = df[df.root == f"abacus_cosm{m:03}"]["omega_b"].array[0]
+                    h = df[df.root == f"abacus_cosm{m:03}"]["h"]
+                    cosmo_params[j, i] = omegabh2 / h / h
+
                 else:
                     raise ValueError(f"Parameter {name} not yet supported for Abacus.")
 
