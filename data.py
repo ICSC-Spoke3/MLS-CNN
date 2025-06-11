@@ -313,17 +313,21 @@ class NumberCountsDataset(BaseDataset):
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
             xm_idx = idx % self.xlum_sobol_n_models
+            xm_suffix = f"_{xm_idx}"
         else:
             cm_idx = idx
+            xm_suffix = ""
+
+        if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
+            filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.number_counts.dat"
+        elif self.sim_type == "abacus":
+            filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.number_counts.dat"
 
         data = []
 
         for z in self.redshift:
 
-            if self.xlum_sobol:
-                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.number_counts.dat"
-            else:
-                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.number_counts.dat"
+            data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{filename}"
 
             data_tmp = np.genfromtxt(data_path)
 
@@ -379,25 +383,26 @@ class PowerSpectrumDataset(BaseDataset):
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
             xm_idx = idx % self.xlum_sobol_n_models
+            xm_suffix = f"_{xm_idx}"
         else:
             cm_idx = idx
+            xm_suffix = ""
+
+        if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
+            filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.power_spectrum.npz"
+        elif self.sim_type == "abacus":
+            filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.power_spectrum.npz"
 
         data = []
 
         for z in self.redshift:
 
-            if self.xlum_sobol:
-                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}_{xm_idx}.power_spectrum.npz"
-            else:
-                data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{self.sim_type}.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}.power_spectrum.npz"
+            data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{filename}"
 
             with np.load(data_path) as data_read:
 
                 for m in self.mobs_bins:
 
-                    # data.append(
-                    #     np.log10(1 + data_read[f"cut_{self.mobs_type}_{m:.1e}"])
-                    # )
                     data.append(np.log10(1 + data_read[f"{self.mobs_type}_{m:.1e}"]))
 
         data = np.ravel(data)
