@@ -644,14 +644,6 @@ def get_dataset_single_probe(
     mean = next(iter(dataloader_train))[0].mean()
     std = next(iter(dataloader_train))[0].std()
 
-    # # Save mean and std for later.
-    # filename = f"dataset_standardization_{probe}_output.dat"
-    # np.savetxt(
-    #     f"{args.output_dir}/{filename}",
-    #     [mean, std],
-    #     header="Mean Std",
-    # )
-
     # Transform to standardize data.
     transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - mean) / std)
 
@@ -660,6 +652,17 @@ def get_dataset_single_probe(
 
     if verbose:
         print(f"Standardizing dataset with: mean={mean}, std={std}.")
+
+    # Save dataset scaling for later.
+    mean_array = np.array(mean)
+    scale_array = np.array(std)
+    scaling_data = np.vstack((mean_array, scale_array)).T
+    filename = f"dataset_standardization_{probe}.dat"
+    np.savetxt(
+        f"{args.output_dir}/{filename}",
+        scaling_data,
+        header="Mean Std",
+    )
 
     scaler_data = (float(mean), float(std))
 
@@ -671,6 +674,17 @@ def get_dataset_single_probe(
         print(
             f"Standardizing dataset labels with: mean={scaler_labels.mean_}, std={scaler_labels.scale_}."
         )
+
+    # Save labels scaling for later.
+    mean_array = np.array(scaler_labels.mean_)
+    scale_array = np.array(scaler_labels.scale_)
+    scaling_data = np.vstack((mean_array, scale_array)).T
+    filename = f"dataset_standardization_labels.dat"
+    np.savetxt(
+        f"{args.output_dir}/{filename}",
+        scaling_data,
+        header="Mean Std",
+    )
 
     # Transform to standardize labels.
     target_transform_normalize = Lambda(
