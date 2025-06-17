@@ -39,7 +39,7 @@ lazy_loading = false
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the training phase, and not the HP tuning.
 # See below for the HP tuning phase.
-compile_model = false
+compile_model = true
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
@@ -177,7 +177,7 @@ resume = true
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
-compile_model = false
+compile_model = true
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 

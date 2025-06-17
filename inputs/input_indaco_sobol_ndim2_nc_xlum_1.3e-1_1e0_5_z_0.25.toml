@@ -39,7 +39,7 @@ lazy_loading = false
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the training phase, and not the HP tuning.
 # See below for the HP tuning phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
@@ -114,7 +114,7 @@ density_field_n_channels_base = 1
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["density_field"]
+probe_list = ["number_counts"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_sobol_ndim2"
@@ -133,7 +133,7 @@ mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # luminosity: "xlum"
 mobs_type = "xlum"
 # List of redshifts (snapshots).
-redshift = [0]
+redshift = [0.25]
 
 [probes.power_spectrum]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
@@ -147,7 +147,7 @@ mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # luminosity: "xlum"
 mobs_type = "xlum"
 # List of redshifts (snapshots).
-redshift = [0]
+redshift = [0.25]
 
 [probes.number_counts]
 # Number counts from different redshifts are concatenated into a single 1D array.
@@ -161,7 +161,7 @@ mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # luminosity: "xlum"
 mobs_type = "xlum"
 # List of redshifts (snapshots).
-redshift = [0]
+redshift = [0.25]
 # If true, use cumulative mass bins. If false, use differential mass bins. WARNING: not yet fully implemented.
 cumulative = true
 
@@ -177,7 +177,7 @@ resume = true
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 

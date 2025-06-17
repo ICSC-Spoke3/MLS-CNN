@@ -133,7 +133,7 @@ mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # luminosity: "xlum"
 mobs_type = "xlum"
 # List of redshifts (snapshots).
-redshift = [0]
+redshift = [0, 0.25, 0.5]
 
 [probes.power_spectrum]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
@@ -147,7 +147,7 @@ mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # luminosity: "xlum"
 mobs_type = "xlum"
 # List of redshifts (snapshots).
-redshift = [0]
+redshift = [0, 0.25, 0.5]
 
 [probes.number_counts]
 # Number counts from different redshifts are concatenated into a single 1D array.
@@ -161,7 +161,7 @@ mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # luminosity: "xlum"
 mobs_type = "xlum"
 # List of redshifts (snapshots).
-redshift = [0]
+redshift = [0, 0.25, 0.5]
 # If true, use cumulative mass bins. If false, use differential mass bins. WARNING: not yet fully implemented.
 cumulative = true
 
