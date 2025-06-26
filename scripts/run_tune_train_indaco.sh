@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J nc_lcdm_m10_z_0.2_0.5
+#SBATCH -J nc_2d_x5_z_0_0.25_0.5
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -18,15 +18,33 @@ n_threads=1
 
 ########## Param. file: NC #########
 
+## NDIM2
+
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_nc_mass_1e14_1e15_10_z_0.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_nc_mass_1e14_1e15_10_z_0.25.toml"
 
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_nc_xlum_1.3e-1_1e0_5_z_0.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_nc_xlum_1.3e-1_1e0_5_z_0.25.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_nc_xlum_1.3e-1_1e0_5_z_0_0.25.toml"
+param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_nc_xlum_1.3e-1_1e0_5_z_0_0.25_0.5.toml"
+
+## LCDM
+
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_mass_1e14_1e15_10_z_0.2.toml"
-param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_mass_1e14_1e15_10_z_0.2_0.5.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_mass_1e14_1e15_10_z_0.2_0.5.toml"
 
 ########## Param. file: CNN #########
 
+## NDIM2
+
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_cnn_n16_mass_1e14_1e15_10_z_0.25.toml"
+
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_cnn_n16_xlum_1.3e-1_1e0_5_z_0.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_cnn_n16_xlum_1.3e-1_1e0_5_z_0.25.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_cnn_n16_xlum_1.3e-1_1e0_5_z_0_0.25.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_ndim2_cnn_n16_xlum_1.3e-1_1e0_5_z_0_0.25_0.5.toml"
+
+## LCDM
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_mass_1e14_1e15_10_z_0.2.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_mass_1e14_1e15_10_z_0.2_0.5.toml"
@@ -36,12 +54,22 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/nc_mass_1e14_1e15_10_z_0"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/nc_mass_1e14_1e15_10_z_0.25"
 
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/nc_xlum_1.3e-1_1e0_5_z_0"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/nc_xlum_1.3e-1_1e0_5_z_0.25"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/nc_xlum_1.3e-1_1e0_5_z_0_0.25"
+output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/nc_xlum_1.3e-1_1e0_5_z_0_0.25_0.5"
+
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_mass_1e14_1e15_10_z_0.2"
-output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_mass_1e14_1e15_10_z_0.2_0.5"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_mass_1e14_1e15_10_z_0.2_0.5"
 
 ########## Output dir.: CNN #########
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/cnn_n16_mass_1e14_1e15_10_z_0.25"
+
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/cnn_n16_xlum_1.3e-1_1e0_5_z_0"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/cnn_n16_xlum_1.3e-1_1e0_5_z_0.25"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/cnn_n16_xlum_1.3e-1_1e0_5_z_0_0.25"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_ndim2/cnn_n16_xlum_1.3e-1_1e0_5_z_0_0.25_0.5"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n16_mass_1e14_1e15_10_z_0.2"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n16_mass_1e14_1e15_10_z_0.2_0.5"

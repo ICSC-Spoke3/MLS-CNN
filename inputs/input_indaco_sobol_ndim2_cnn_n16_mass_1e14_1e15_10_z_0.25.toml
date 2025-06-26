@@ -125,7 +125,7 @@ data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_s
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_3D_tsc_n16_norsd/"
+data_dir = "density_field_n16_norsd/"
 # List of minimum mass/luminosity thresholds.
 mobs_min = [1e14, 1.3e14, 1.7e14, 2.2e14, 2.8e14, 3.6e14, 4.6e14, 6e14, 7.7e14, 1e15]
 # Use mass or luminosity cuts.
@@ -139,7 +139,7 @@ redshift = [0.25]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
 
 # Root directory with the data. Different mass cuts and redshifts are in sub-directories.
-data_dir = "power_spectrum_TSC_n128_norsd"
+data_dir = "power_spectrum_n128_norsd"
 # List of minimum mass/luminosity thresholds.
 mobs_min = [1e14, 1.3e14, 1.7e14, 2.2e14, 2.8e14, 3.6e14, 4.6e14, 6e14, 7.7e14, 1e15]
 # Use mass or luminosity cuts.
