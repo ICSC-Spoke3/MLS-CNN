@@ -4,7 +4,7 @@ from typing import Literal
 import optuna
 from pydantic import BaseModel, ConfigDict
 
-_SIM_TYPES = Literal["pinocchio", "abacus", "pinocchio_lcdm"]
+_SIM_TYPES = Literal["pinocchio", "abacus", "pinocchio_lcdm", "pinocchio_fiducial"]
 
 
 def get_cli_args():

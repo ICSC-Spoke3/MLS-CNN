@@ -67,7 +67,7 @@ def read_cosmo_params(
 
     cosmo_params = np.zeros((model_numbers.shape[0], len(params_names)))
 
-    if sim_type == "pinocchio" or sim_type == "pinocchio_lcdm":
+    if sim_type in ["pinocchio", "pinocchio_lcdm", "pinocchio_fiducial"]:
 
         params_idx_pinocchio = {
             "Omega_m": 0,
@@ -80,11 +80,13 @@ def read_cosmo_params(
         }
 
         data = np.genfromtxt(cosmo_params_file)
+        if data.ndim == 1:
+            data = data.reshape(1, -1)
 
         for i, name in enumerate(params_names):
             if name == "S8":
                 cosmo_params[:, i] = data[
-                    model_numbers, params_idx_pinocchio["sigma8"]
+                    model_numbers - 1, params_idx_pinocchio["sigma8"]
                 ] * np.sqrt(
                     data[model_numbers - 1, params_idx_pinocchio["Omega_m"]] / 0.3
                 )
@@ -162,6 +164,14 @@ def get_cosmo_models_numbers(
         # List of models.
         models = np.array([i for i in range(MODEL_MIN, MODEL_MAX + 1)])
         models = models[~np.isin(models, FAILED_MODELS)]
+
+    elif sim_type == "pinocchio_fiducial":
+
+        # Number of sims.
+        n_sims = 30
+
+        # List of models.
+        models = np.array([1 for _ in range(n_sims)])
 
     elif sim_type == "abacus":
         # Fiducial.
@@ -474,6 +484,8 @@ class DensityFieldDataset(BaseDataset):
 
         if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
             filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.density_field.npz"
+        elif self.sim_type == "pinocchio_fiducial":
+            filename = f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.density_field.npz"
         elif self.sim_type == "abacus":
             filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.density_field.npz"
 
