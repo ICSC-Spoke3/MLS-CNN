@@ -14,6 +14,8 @@ from input_args import Inputs, _SIM_TYPES
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+_BA_FIDUCIAL = np.array([-1.36, 1.88, -0.29, 0.328])
+
 
 def get_params_cosmo_xlum(
     cosmo_params: npt.NDArray,
@@ -43,13 +45,24 @@ def get_params_cosmo_xlum(
     # Put cosmo params into final array.
     params[:, :ndim_cosmo] = cosmo_params
 
-    # Read xlum params file.
-    xlum_params_dict = np.load(xlum_params_file)
-
     # Gather xlum params for each cosmo model.
     xlum_params = []
-    for m in cosmo_models:
-        xlum_params.append(xlum_params_dict[f"model{m:05}_{m:05}"][:n_models_xlum, :])
+
+    if xlum_params_file == "fiducial":
+
+        for m in cosmo_models:
+            xlum_params.append(_BA_FIDUCIAL.reshape(1, -1))
+
+    else:
+
+        # Read xlum params file.
+        xlum_params_dict = np.load(xlum_params_file)
+
+        for m in cosmo_models:
+            xlum_params.append(
+                xlum_params_dict[f"model{m:05}_{m:05}"][:n_models_xlum, :]
+            )
+
     xlum_params = np.vstack(xlum_params)
 
     # Put xlum params into final array.
@@ -168,7 +181,7 @@ def get_cosmo_models_numbers(
     elif sim_type == "pinocchio_fiducial":
 
         # Number of sims.
-        n_sims = 30
+        n_sims = 300
 
         # List of models.
         models = np.array([1 for _ in range(n_sims)])
@@ -227,7 +240,7 @@ class BaseDataset(ABC, Dataset):
         self.xlum_sobol_n_models = xlum_sobol_n_models
 
         # Use xlum sobol sequence or not.
-        if self.xlum_sobol_n_models > 0 and mobs_type == "xlum":
+        if mobs_type == "xlum":
             self.xlum_sobol = True
         else:
             self.xlum_sobol = False
@@ -243,15 +256,25 @@ class BaseDataset(ABC, Dataset):
         # Labels are cosmo params + xlum params.
         if self.xlum_sobol:
 
-            if xlum_params_file is None:
-                raise ValueError("You must provide a value for `xlum_params_file`.")
+            if xlum_sobol_n_models == 0:
+                self.labels = get_params_cosmo_xlum(
+                    cosmo_params,
+                    self.cosmo_models,
+                    1,
+                    "fiducial",
+                )
 
-            self.labels = get_params_cosmo_xlum(
-                cosmo_params,
-                self.cosmo_models,
-                self.xlum_sobol_n_models,
-                xlum_params_file,
-            )
+            else:
+                if xlum_params_file is None:
+                    raise ValueError("You must provide a value for `xlum_params_file`.")
+
+                self.labels = get_params_cosmo_xlum(
+                    cosmo_params,
+                    self.cosmo_models,
+                    self.xlum_sobol_n_models,
+                    xlum_params_file,
+                )
+
         # No xlum parameters in the labels.
         else:
             self.labels = cosmo_params
@@ -474,7 +497,7 @@ class DensityFieldDataset(BaseDataset):
 
     def read_data(self, idx):
 
-        if self.xlum_sobol:
+        if self.xlum_sobol and self.xlum_sobol_n_models > 0:
             cm_idx = idx // self.xlum_sobol_n_models
             xm_idx = idx % self.xlum_sobol_n_models
             xm_suffix = f"_{xm_idx}"
@@ -485,7 +508,9 @@ class DensityFieldDataset(BaseDataset):
         if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
             filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.density_field.npz"
         elif self.sim_type == "pinocchio_fiducial":
-            filename = f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.density_field.npz"
+            filename = (
+                f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.density_field.npz"
+            )
         elif self.sim_type == "abacus":
             filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.density_field.npz"
 
