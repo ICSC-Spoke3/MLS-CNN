@@ -177,7 +177,7 @@ def get_cosmo_models_numbers(
     elif sim_type == "pinocchio_lcdm":
         # First and last model number.
         MODEL_MIN = 1
-        MODEL_MAX = 512
+        MODEL_MAX = 2048
 
         # Failed models.
         FAILED_MODELS = np.array([])
