@@ -22,6 +22,7 @@ def get_params_cosmo_xlum(
     cosmo_models: npt.NDArray,
     n_models_xlum: int,
     xlum_params_file: str,
+    sim_type: _SIM_TYPES,
 ) -> npt.NDArray:
 
     # Number of cosmo models.
@@ -59,9 +60,16 @@ def get_params_cosmo_xlum(
         xlum_params_dict = np.load(xlum_params_file)
 
         for m in cosmo_models:
-            xlum_params.append(
-                xlum_params_dict[f"model{m:05}_{m:05}"][:n_models_xlum, :]
-            )
+            if sim_type == "abacus":
+                xlum_params.append(
+                    xlum_params_dict[f"AbacusSummit_base_c{m:03}_ph000"][
+                        :n_models_xlum, :
+                    ]
+                )
+            else:
+                xlum_params.append(
+                    xlum_params_dict[f"model{m:05}_{m:05}"][:n_models_xlum, :]
+                )
 
     xlum_params = np.vstack(xlum_params)
 
@@ -258,10 +266,7 @@ class BaseDataset(ABC, Dataset):
 
             if xlum_sobol_n_models == 0:
                 self.labels = get_params_cosmo_xlum(
-                    cosmo_params,
-                    self.cosmo_models,
-                    1,
-                    "fiducial",
+                    cosmo_params, self.cosmo_models, 1, "fiducial", self.sim_type
                 )
 
             else:
@@ -273,6 +278,7 @@ class BaseDataset(ABC, Dataset):
                     self.cosmo_models,
                     self.xlum_sobol_n_models,
                     xlum_params_file,
+                    self.sim_type,
                 )
 
         # No xlum parameters in the labels.
