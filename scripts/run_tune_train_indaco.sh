@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J cnn16_lcdm_m14_z_0.1_0.2_0.5
+#SBATCH -J cnn16_lcdm_x5_z_0.2
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=180G
+#SBATCH --mem=80G
 #SBATCH --time=01-00:00:00
 #SBATCH --output=/exa/projects/MLS/inigo.saez/logs/output/%x.%j.out
 #SBATCH --error=/exa/projects/MLS/inigo.saez/logs/error/%x.%j.err
@@ -77,7 +77,7 @@ n_threads=1
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n32_mass_1e14_1e15_10_z_0.1_0.2_0.5.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_mass_3.6e13_1e15_14_z_0.2.toml"
-param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_mass_3.6e13_1e15_14_z_0.1_0.2_0.5.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_mass_3.6e13_1e15_14_z_0.1_0.2_0.5.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_mass_3.6e13_mark_mean_z_0.2.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_mass_3.6e13_mark_mean_z_0.1_0.2_0.5.toml"
@@ -87,6 +87,8 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n32_mass_3.6e13_mark_mean_z_0.2.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n32_mass_3.6e13_mark_mean_z_0.1_0.2_0.5.toml"
+
+param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_xlum_1.3e-1_1e0_5_z_0.2.toml"
 
 ########## Output dir: PS #########
 
@@ -149,7 +151,7 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n32_mass_1e14_1e15_10_z_0.1_0.2_0.5"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n16_mass_3.6e13_1e15_14_z_0.2"
-output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n16_mass_3.6e13_1e15_14_z_0.1_0.2_0.5"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n16_mass_3.6e13_1e15_14_z_0.1_0.2_0.5"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n16_mass_3.6e13_mark_mean_z_0.2"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n16_mass_3.6e13_mark_mean_z_0.1_0.2_0.5"
@@ -159,6 +161,8 @@ output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n1
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n32_mass_3.6e13_mark_mean_z_0.2"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n32_mass_3.6e13_mark_mean_z_0.1_0.2_0.5"
+
+output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_n16_xlum_1.3e-1_1e0_5_z_0.2"
 
 # Python main script.
 exe_python="/home/users/inigo.saez/codes/MLS-CNN/main.py"
