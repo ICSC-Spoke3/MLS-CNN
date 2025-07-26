@@ -189,7 +189,7 @@ def get_cosmo_models_numbers(
     elif sim_type == "pinocchio_fiducial":
 
         # Number of sims.
-        n_sims = 300
+        n_sims = 1000
 
         # List of models.
         models = np.array([1 for _ in range(n_sims)])
