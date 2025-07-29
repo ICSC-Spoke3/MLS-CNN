@@ -163,19 +163,20 @@ def get_cnn_extractor(
     conv_stride_2 = 2
     conv_padding_2 = 0
 
-    padding_mode = "circular"
+    # padding_mode = "circular"
+    padding_mode = "zeros"
 
-    num_conv_layers = int(np.log2(in_nside / 4))
+    num_conv_layers = int(np.log2(in_nside / 2))
 
     # Batch norm.
     if dim == 2:
         conv_layer = nn.Conv2d
         batch_norm_layer = nn.BatchNorm2d
-        pool_layer = nn.MaxPool2d
+        # pool_layer = nn.MaxPool2d
     elif dim == 3:
         conv_layer = nn.Conv3d
         batch_norm_layer = nn.BatchNorm3d
-        pool_layer = nn.MaxPool3d
+        # pool_layer = nn.MaxPool3d
     else:
         raise ValueError("Wrong dimension value: ", dim)
 
@@ -188,7 +189,7 @@ def get_cnn_extractor(
         n_channels = 2 ** (i + 1) * channels_base
 
         module.add_module(
-            f"conv_{i+1}",
+            f"conv_{i+1}_1",
             conv_layer(
                 n_channels_previous,
                 n_channels,
@@ -203,13 +204,19 @@ def get_cnn_extractor(
         module.add_module(f"activation_{i+1}_1", activation())
 
         module.add_module(
-            f"pool_{i+1}",
-            pool_layer(
+            f"conv_{i+1}_2",
+            conv_layer(
+                n_channels_previous,
+                n_channels,
                 conv_kernel_2,
                 conv_stride_2,
                 conv_padding_2,
+                padding_mode=padding_mode,
             ),
         )
+        if batch_norm:
+            module.add_module(f"batch_norm_{i+1}_2", batch_norm_layer(n_channels))
+        module.add_module(f"activation_{i+1}_2", activation())
 
         n_channels_previous = n_channels
 
@@ -220,7 +227,7 @@ def get_cnn_extractor(
         conv_layer(
             n_channels_previous,
             n_channels_final,
-            4,
+            2,
             1,
             0,
             padding_mode=padding_mode,
