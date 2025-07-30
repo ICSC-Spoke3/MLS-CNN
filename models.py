@@ -146,7 +146,13 @@ class FCRegressorSingleProbe(nn.Module):
 
 
 def get_cnn_extractor(
-    dim, in_nside: int, in_channels: int, channels_base: int, batch_norm: bool
+    # dim, in_nside: int, in_channels: int, channels_base: int, batch_norm: bool
+    dim,
+    in_nside: int,
+    in_channels: int,
+    channels_first: int,
+    channels_factor: int,
+    batch_norm: bool,
 ):
 
     # Activation function.
@@ -186,7 +192,7 @@ def get_cnn_extractor(
 
     for i in range(num_conv_layers):
 
-        n_channels = 2 ** (i + 1) * channels_base
+        n_channels = channels_factor**i * channels_first
 
         module.add_module(
             f"conv_{i+1}_1",
@@ -221,7 +227,8 @@ def get_cnn_extractor(
         n_channels_previous = n_channels
 
     # Last convolution.
-    n_channels_final = 2 ** (num_conv_layers + 1) * channels_base
+    # n_channels_final = 2 ** (num_conv_layers + 1) * channels_base
+    n_channels_final = 2**num_conv_layers * channels_first
     module.add_module(
         "conv_final",
         conv_layer(
@@ -308,7 +315,9 @@ def get_model(args: Inputs, dataset: Dataset):
                 dim,
                 nside,
                 in_channels,
-                args.train.density_field_n_channels_base,
+                # args.train.density_field_n_channels_base,
+                args.train.density_field_n_channels_first,
+                args.train.density_field_n_channels_factor,
                 args.train.batch_norm,
             )
 
