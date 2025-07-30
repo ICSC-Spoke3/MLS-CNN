@@ -206,7 +206,7 @@ def get_cnn_extractor(
         module.add_module(
             f"conv_{i+1}_2",
             conv_layer(
-                n_channels_previous,
+                n_channels,
                 n_channels,
                 conv_kernel_2,
                 conv_stride_2,
