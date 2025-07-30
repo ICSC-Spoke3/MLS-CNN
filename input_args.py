@@ -95,9 +95,7 @@ class TrainInputs(BaseModel):
     nc_fc_layers: int
     nc_fc_units_per_layer: int
 
-    # density_field_n_channels_base: int
     density_field_n_channels_first: int
-    density_field_n_channels_factor: int
 
 
 class PowerSpectrumInputs(BaseModel):
@@ -204,9 +202,7 @@ class TuneInputs(BaseModel):
     nc_fc_layers: HyperParamInt
     nc_fc_units_per_layer: HyperParamInt
 
-    # density_field_n_channels_base: HyperParamInt
     density_field_n_channels_first: HyperParamInt
-    density_field_n_channels_factor: HyperParamInt
 
     dropout: HyperParamFloat
 
@@ -305,26 +301,12 @@ def suggest_args(
 
         if probe == "density_field":
 
-            # args.train.density_field_n_channels_base = trial.suggest_int(
-            #     "density_field_n_channels_base",
-            #     args.tune.density_field_n_channels_base.low,
-            #     args.tune.density_field_n_channels_base.high,
-            #     step=args.tune.density_field_n_channels_base.step,
-            #     log=args.tune.density_field_n_channels_base.log,
-            # )
             args.train.density_field_n_channels_first = trial.suggest_int(
                 "density_field_n_channels_first",
                 args.tune.density_field_n_channels_first.low,
                 args.tune.density_field_n_channels_first.high,
                 step=args.tune.density_field_n_channels_first.step,
                 log=args.tune.density_field_n_channels_first.log,
-            )
-            args.train.density_field_n_channels_factor = trial.suggest_int(
-                "density_field_n_channels_factor",
-                args.tune.density_field_n_channels_factor.low,
-                args.tune.density_field_n_channels_factor.high,
-                step=args.tune.density_field_n_channels_factor.step,
-                log=args.tune.density_field_n_channels_factor.log,
             )
 
         elif probe == "power_spectrum":

@@ -39,7 +39,7 @@ lazy_loading = false
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the training phase, and not the HP tuning.
 # See below for the HP tuning phase.
-compile_model = false
+compile_model = true
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
@@ -107,7 +107,7 @@ nc_fc_layers = 2
 nc_fc_units_per_layer = 128
 
 # Parameters for the density_field convolutional block.
-density_field_n_channels_base = 1
+density_field_n_channels_first = 10
 
 [probes]
 # These parameters control the cosmological probes that are used for inference.
@@ -177,21 +177,21 @@ resume = true
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
-compile_model = false
+compile_model = true
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
 # Number of trials per process.
 trials = 200
 # Maximum number of epochs for each trial.
-n_epochs = 300
+n_epochs = 500
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
 pruner = "median"
 
 # Parameters for median pruner (see optuna documentation).
 median_n_startup_trials = 5
-median_n_warmup_steps = 5
+median_n_warmup_steps = 10
 median_n_min_trials = 1
 
 # Parameters for hyperband pruner (see optuna documentation).
@@ -228,7 +228,7 @@ log = true
 
 [tune.batch_size]
 
-choices = [16, 32, 64, 128, 256]
+choices = [16, 32, 64, 128, 256, 512, 1024]
 
 [tune.regressor_fc_layers]
 
@@ -266,10 +266,11 @@ low = 100
 high = 1000
 step = 100
 
-[tune.density_field_n_channels_base]
+[tune.density_field_n_channels_first]
 
-low = 1
-high = 10
+low = 5
+high = 100
+step = 5
 
 [tune.dropout]
 
