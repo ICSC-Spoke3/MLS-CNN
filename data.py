@@ -482,6 +482,7 @@ class DensityFieldDataset(BaseDataset):
         seed: int | None = None,
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
+        n_augment_flip: int = 0,
     ) -> None:
 
         super(DensityFieldDataset, self).__init__(
@@ -501,7 +502,15 @@ class DensityFieldDataset(BaseDataset):
             sim_type=sim_type,
         )
 
+        self.n_augment_flip = n_augment_flip
+
+        self.labels = torch.tile(self.labels, (self.n_augment_flip + 1, 1))
+
     def read_data(self, idx):
+
+        n_models_tot = self.labels.size(dim=0) / (self.n_augment_flip + 1)
+        idx_flip = idx // n_models_tot
+        idx = idx % n_models_tot
 
         if self.xlum_sobol and self.xlum_sobol_n_models > 0:
             cm_idx = idx // self.xlum_sobol_n_models
@@ -535,6 +544,11 @@ class DensityFieldDataset(BaseDataset):
                     data_tmp = np.log10(1 + data_tmp)
 
                     ndim = data_tmp.ndim
+
+                    if idx_flip > 0:
+                        idx_flip = idx_flip % ndim - 1
+                        data_tmp = torch.flip(data_tmp, [idx_flip])
+
                     if ndim == 2:
                         data_tmp = data_tmp.reshape(
                             (1, data_tmp.shape[0], data_tmp.shape[1])
@@ -608,6 +622,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             seed=args.split_seed,
             lazy_loading=args.lazy_loading,
             sim_type=args.sim_type,
+            n_augment_flip=args.probes.density_field.n_augment_flip,
             **kwargs,
         )
 

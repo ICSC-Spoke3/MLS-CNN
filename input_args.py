@@ -126,6 +126,8 @@ class DensityFieldInputs(BaseModel):
     mobs_type: Literal["mass", "xlum"]
     redshift: list[float]
 
+    n_augment_flip: int = 0
+
 
 class ProbesInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
