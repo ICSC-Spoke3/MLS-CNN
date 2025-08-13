@@ -511,8 +511,8 @@ class DensityFieldDataset(BaseDataset):
     def read_data(self, idx):
 
         n_models_tot = self.labels.size(dim=0) / (self.n_augment_flip + 1)
-        idx_flip = idx // n_models_tot
-        idx = idx % n_models_tot
+        idx_flip = int(idx // n_models_tot)
+        idx = int(idx % n_models_tot)
 
         if self.xlum_sobol and self.xlum_sobol_n_models > 0:
             cm_idx = idx // self.xlum_sobol_n_models
@@ -549,7 +549,7 @@ class DensityFieldDataset(BaseDataset):
 
                     if idx_flip > 0:
                         idx_flip = idx_flip % ndim - 1
-                        data_tmp = torch.flip(data_tmp, [idx_flip])
+                        data_tmp = np.flip(data_tmp, axis=idx_flip)
 
                     if ndim == 2:
                         data_tmp = data_tmp.reshape(
