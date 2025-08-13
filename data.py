@@ -233,6 +233,7 @@ class BaseDataset(ABC, Dataset):
         seed: int | None = None,
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
+        n_augment_flip: int = 0,
     ) -> None:
 
         self.sim_type = sim_type
@@ -243,6 +244,8 @@ class BaseDataset(ABC, Dataset):
 
         self.mobs_bins = np.ravel(np.array([mobs_bins]))
         self.redshift = np.ravel(np.array([redshift]))
+
+        self.n_augment_flip = n_augment_flip
 
         # Number of sobol sequence models for xlum.
         self.xlum_sobol_n_models = xlum_sobol_n_models
@@ -286,6 +289,8 @@ class BaseDataset(ABC, Dataset):
             self.labels = cosmo_params
 
         self.labels = self.target_transform(self.labels).type(torch.float32)
+
+        self.labels = torch.tile(self.labels, (self.n_augment_flip + 1, 1))
 
         self.mobs_type = mobs_type
 
@@ -500,11 +505,8 @@ class DensityFieldDataset(BaseDataset):
             seed=seed,
             lazy_loading=lazy_loading,
             sim_type=sim_type,
+            n_augment_flip=n_augment_flip,
         )
-
-        self.n_augment_flip = n_augment_flip
-
-        self.labels = torch.tile(self.labels, (self.n_augment_flip + 1, 1))
 
     def read_data(self, idx):
 
