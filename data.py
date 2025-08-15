@@ -510,6 +510,9 @@ class DensityFieldDataset(BaseDataset):
 
     def read_data(self, idx):
 
+        idx_flip_list_3d = [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]
+        idx_flip_list_2d = [[0], [1], [0, 1]]
+
         n_models_tot = self.labels.size(dim=0) / (self.n_augment_flip + 1)
         idx_flip = int(idx // n_models_tot)
         idx = int(idx % n_models_tot)
@@ -547,15 +550,22 @@ class DensityFieldDataset(BaseDataset):
 
                     ndim = data_tmp.ndim
 
-                    if idx_flip > 0:
-                        idx_flip = idx_flip % ndim - 1
-                        data_tmp = np.flip(data_tmp, axis=idx_flip)
-
                     if ndim == 2:
+
+                        if idx_flip > 0:
+                            axis_flip = idx_flip_list_2d[idx_flip - 1]
+                            data_tmp = np.flip(data_tmp, axis=axis_flip)
+
                         data_tmp = data_tmp.reshape(
                             (1, data_tmp.shape[0], data_tmp.shape[1])
                         )
+
                     elif ndim == 3:
+
+                        if idx_flip > 0:
+                            axis_flip = idx_flip_list_3d[idx_flip - 1]
+                            data_tmp = np.flip(data_tmp, axis=axis_flip)
+
                         data_tmp = data_tmp.reshape(
                             (
                                 1,
@@ -564,6 +574,7 @@ class DensityFieldDataset(BaseDataset):
                                 data_tmp.shape[2],
                             )
                         )
+
                     else:
                         raise RuntimeError("Wrong dime for input images: ", ndim)
 
