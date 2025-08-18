@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J cnn16_lcdm_x5_z_0.2
+#SBATCH -J cnn32_lcdm_m7_z_0.2_f7_3
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -54,13 +54,13 @@ n_threads=1
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n32_mass_3.6e13_7.7e14_7_z_0.2.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n32_mass_3.6e13_7.7e14_7_z_0.2_flip3.toml"
-#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n32_mass_3.6e13_7.7e14_7_z_0.2_flip7.toml"
+param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n32_mass_3.6e13_7.7e14_7_z_0.2_flip7.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n64_mass_3.6e13_1e15_14_z_0.2.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n64_mass_3.6e13_7.7e14_7_z_0.2.toml"
 
-param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_xlum_1.3e-1_1e0_5_z_0.2.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_n16_xlum_1.3e-1_1e0_5_z_0.2.toml"
 
 ########## Output dir.: CNN #########
 
@@ -100,13 +100,13 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm_new_cnn/cnn_n32_mass_3.6e13_7.7e14_7_z_0.2"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm_new_cnn/cnn_n32_mass_3.6e13_7.7e14_7_z_0.2_flip3"
-#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm_new_cnn/cnn_n32_mass_3.6e13_7.7e14_7_z_0.2_flip7"
+output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm_new_cnn/cnn_n32_mass_3.6e13_7.7e14_7_z_0.2_flip7"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm_new_cnn/cnn_n64_mass_3.6e13_1e15_14_z_0.2"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm_new_cnn/cnn_n64_mass_3.6e13_7.7e14_7_z_0.2"
 
-output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm_new_cnn/cnn_n16_xlum_1.3e-1_1e0_5_z_0.2"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm_new_cnn/cnn_n16_xlum_1.3e-1_1e0_5_z_0.2"
 
 # Python main script.
 exe_python="/home/users/inigo.saez/codes/MLS-CNN/main.py"
@@ -115,6 +115,6 @@ mkdir -p $output_dir
 cd $output_dir
 mkdir -p logs
 
-#python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune.log
+python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_3.log
 
 python $exe_python train -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/train.log
