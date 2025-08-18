@@ -107,7 +107,7 @@ nc_fc_layers = 2
 nc_fc_units_per_layer = 128
 
 # Parameters for the density_field convolutional block.
-density_field_n_channels_base = 1
+density_field_n_channels_first = 10
 
 [probes]
 # These parameters control the cosmological probes that are used for inference.
@@ -182,7 +182,7 @@ compile_model = true
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 60
+trials = 200
 # Maximum number of epochs for each trial.
 n_epochs = 300
 
@@ -266,10 +266,11 @@ low = 100
 high = 1000
 step = 100
 
-[tune.density_field_n_channels_base]
+[tune.density_field_n_channels_first]
 
-low = 1
-high = 10
+low = 5
+high = 100
+step = 5
 
 [tune.dropout]
 
