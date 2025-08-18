@@ -576,7 +576,7 @@ class DensityFieldDataset(BaseDataset):
                         )
 
                     else:
-                        raise RuntimeError("Wrong dime for input images: ", ndim)
+                        raise RuntimeError("Wrong dimension for input images: ", ndim)
 
                     data.append(data_tmp)
 
@@ -589,7 +589,7 @@ class DensityFieldDataset(BaseDataset):
 
 class MultiProbeDataset(Dataset):
 
-    def __init__(self, dataset_list: list[DensityFieldDataset]) -> None:
+    def __init__(self, dataset_list: list[BaseDataset]) -> None:
 
         super().__init__()
 
