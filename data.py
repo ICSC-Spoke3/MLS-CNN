@@ -233,7 +233,6 @@ class BaseDataset(ABC, Dataset):
         seed: int | None = None,
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
-        n_augment_flip: int = 0,
     ) -> None:
 
         self.sim_type = sim_type
@@ -244,8 +243,6 @@ class BaseDataset(ABC, Dataset):
 
         self.mobs_bins = np.ravel(np.array([mobs_bins]))
         self.redshift = np.ravel(np.array([redshift]))
-
-        self.n_augment_flip = n_augment_flip
 
         # Number of sobol sequence models for xlum.
         self.xlum_sobol_n_models = xlum_sobol_n_models
@@ -289,8 +286,6 @@ class BaseDataset(ABC, Dataset):
             self.labels = cosmo_params
 
         self.labels = self.target_transform(self.labels).type(torch.float32)
-
-        self.labels = torch.tile(self.labels, (self.n_augment_flip + 1, 1))
 
         self.mobs_type = mobs_type
 
@@ -487,7 +482,6 @@ class DensityFieldDataset(BaseDataset):
         seed: int | None = None,
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
-        n_augment_flip: int = 0,
     ) -> None:
 
         super(DensityFieldDataset, self).__init__(
@@ -505,17 +499,9 @@ class DensityFieldDataset(BaseDataset):
             seed=seed,
             lazy_loading=lazy_loading,
             sim_type=sim_type,
-            n_augment_flip=n_augment_flip,
         )
 
     def read_data(self, idx):
-
-        idx_flip_list_3d = [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]
-        idx_flip_list_2d = [[0], [1], [0, 1]]
-
-        n_models_tot = self.labels.size(dim=0) / (self.n_augment_flip + 1)
-        idx_flip = int(idx // n_models_tot)
-        idx = int(idx % n_models_tot)
 
         if self.xlum_sobol and self.xlum_sobol_n_models > 0:
             cm_idx = idx // self.xlum_sobol_n_models
@@ -552,19 +538,11 @@ class DensityFieldDataset(BaseDataset):
 
                     if ndim == 2:
 
-                        if idx_flip > 0:
-                            axis_flip = idx_flip_list_2d[idx_flip - 1]
-                            data_tmp = np.flip(data_tmp, axis=axis_flip)
-
                         data_tmp = data_tmp.reshape(
                             (1, data_tmp.shape[0], data_tmp.shape[1])
                         )
 
                     elif ndim == 3:
-
-                        if idx_flip > 0:
-                            axis_flip = idx_flip_list_3d[idx_flip - 1]
-                            data_tmp = np.flip(data_tmp, axis=axis_flip)
 
                         data_tmp = data_tmp.reshape(
                             (
@@ -587,11 +565,36 @@ class DensityFieldDataset(BaseDataset):
         return data
 
 
+class AugmentedDensityFieldDataset(Dataset):
+
+    def __init__(self, dataset: DensityFieldDataset, n_augment_flip: int) -> None:
+
+        self.dataset = dataset
+
+        self.n_augment_flip = n_augment_flip
+
+    def __len__(self):
+
+        return len(self.dataset) * (self.n_augment_flip + 1)
+
+    def __getitem__(self, idx):
+
+        idx_flip_list_3d = [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
+        # idx_flip_list_2d = [[], [1], [2], [1, 2]]
+
+        idx_base = int(idx % len(self.dataset))
+        idx_flip = int(idx // len(self.dataset))
+
+        data, label = self.dataset[idx_base]
+
+        data = torch.flip(data, idx_flip_list_3d[idx_flip])
+
+        return data, label
+
+
 class MultiProbeDataset(Dataset):
 
     def __init__(self, dataset_list: list[BaseDataset]) -> None:
-
-        super().__init__()
 
         self.dataset_list = dataset_list
         self.labels = self.dataset_list[0].labels
@@ -635,7 +638,6 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             seed=args.split_seed,
             lazy_loading=args.lazy_loading,
             sim_type=args.sim_type,
-            n_augment_flip=args.probes.density_field.n_augment_flip,
             **kwargs,
         )
 
@@ -706,6 +708,10 @@ def get_dataset_single_probe(
         [fraction_train, args.fraction_validation, args.fraction_test],
         generator=generator,
     )
+
+    # Augment dataset for CNN.
+    if probe == "density_field":
+        dataset_train = AugmentedDensityFieldDataset(dataset_train, args.probes.density_field.n_augment_flip)
 
     # TODO compute by batches in case the whole dataset does not fit into the memory (RAM and/or GPU)
     # Compute mean and standard deviation of all outputs from training set.

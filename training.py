@@ -10,7 +10,11 @@ from torchinfo import summary
 
 import models as models
 import plot as plot
-from data import get_dataset_single_probe, get_datasets_multiprobe
+from data import (
+    get_dataset_single_probe,
+    get_datasets_multiprobe,
+    AugmentedDensityFieldDataset,
+)
 from input_args import Inputs, suggest_args
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -56,6 +60,13 @@ def do_train(args: Inputs) -> None:
         [fraction_train, args.fraction_validation, args.fraction_test],
         generator=generator,
     )
+    if "density_field" in args.probes.probe_list:
+        if len(args.probes.probe_list) == 1:
+            dataset_train = AugmentedDensityFieldDataset(
+                dataset_train, args.probes.density_field.n_augment_flip
+            )
+        else:
+            print("Ignoring data augmentation in multiprobe setup.")
     print(f"-------------------------------\n")
 
     # Init. dataloaders.
