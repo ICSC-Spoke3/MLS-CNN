@@ -364,6 +364,8 @@ def checkpoint(model: nn.Module, filename) -> None:
     torch.save(model.state_dict(), filename)
 
 
+# TODO: implement gradient accumulation.
+# Be careful with AMP compatibility.
 def train_loop(
     dataloader: DataLoader,
     model: nn.Module,
@@ -384,7 +386,9 @@ def train_loop(
     current_loss = 0.0
 
     model.train()
+
     for batch, (X, y) in enumerate(dataloader):
+
         if send_to_device:
             if isinstance(X, list):
                 X = [elt.to(device, non_blocking=True) for elt in X]
@@ -395,16 +399,22 @@ def train_loop(
         optimizer.zero_grad()
 
         with autocast(device_type=device):
+
             pred = model(X)
             n_pred = int(pred.shape[1] / 2)
 
             pred_means = pred[:, :n_pred]
             pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
 
+            del pred
+
             if gauss_nllloss:
 
                 loss_fn = nn.GaussianNLLLoss()
                 loss = loss_fn(pred_means, y, pred_vars)
+
+                del pred_means
+                del pred_vars
 
             else:
 
@@ -417,6 +427,9 @@ def train_loop(
                     ),
                     dim=0,
                 )
+
+                del pred_vars
+
                 loss_skew = (
                     torch.sum(
                         torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
@@ -433,7 +446,15 @@ def train_loop(
                     if loss_kurt
                     else 0
                 )
+
+                del pred_means
+
                 loss = loss_mean + loss_var + loss_skew + loss_kurt
+
+                del loss_mean
+                del loss_var
+                del loss_skew
+                del loss_kurt
 
         grad_scaler.scale(loss).backward()
         grad_scaler.step(optimizer)
@@ -468,8 +489,11 @@ def validation_loop(
     val_loss = 0
 
     model.eval()
+
     with torch.no_grad():
+
         for X, y in dataloader:
+
             if send_to_device:
                 if isinstance(X, list):
                     X = [elt.to(device, non_blocking=True) for elt in X]
@@ -483,10 +507,15 @@ def validation_loop(
             pred_means = pred[:, :n_pred]
             pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
 
+            del pred
+
             if gauss_nllloss:
 
                 loss_fn = nn.GaussianNLLLoss()
                 loss = loss_fn(pred_means, y, pred_vars)
+
+                del pred_means
+                del pred_vars
 
             else:
 
@@ -499,6 +528,9 @@ def validation_loop(
                     ),
                     dim=0,
                 )
+
+                del pred_vars
+
                 loss_skew = (
                     torch.sum(
                         torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
@@ -515,7 +547,15 @@ def validation_loop(
                     if loss_kurt
                     else 0
                 )
+
+                del pred_means
+
                 loss = loss_mean + loss_var + loss_skew + loss_kurt
+
+                del loss_mean
+                del loss_var
+                del loss_skew
+                del loss_kurt
 
             val_loss += loss.item()
 
@@ -621,16 +661,19 @@ def eval_model(
 
     model.eval()
 
-    for X, y in dataloader:
+    with torch.no_grad():
 
-        target.append(y.detach().cpu().numpy())
+        for X, y in dataloader:
 
-        if send_to_device:
-            if isinstance(X, list):
-                X = [elt.to(device, non_blocking=True) for elt in X]
-            else:
-                X = X.to(device, non_blocking=True)
-        pred.append(model(X).detach().cpu().numpy())
+            target.append(y.detach().cpu().numpy())
+
+            if send_to_device:
+                if isinstance(X, list):
+                    X = [elt.to(device, non_blocking=True) for elt in X]
+                else:
+                    X = X.to(device, non_blocking=True)
+
+            pred.append(model(X).detach().cpu().numpy())
 
     n_pred = int(pred[0].shape[1] / 2)
 
