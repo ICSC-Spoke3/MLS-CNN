@@ -50,7 +50,9 @@ def do_tune(args: Inputs) -> None:
             n_min_trials=args.tune.median_n_min_trials,
         )
     else:
-        raise ValueError("Wrong pruner name. Supported pruners are: 'median' or 'hyperband'.")
+        raise ValueError(
+            "Wrong pruner name. Supported pruners are: 'median' or 'hyperband'."
+        )
 
     study = optuna.create_study(
         study_name=args.tune.study_name,
@@ -83,7 +85,9 @@ def do_tune(args: Inputs) -> None:
     print(f"-------------------------------\n")
 
     objective_func = get_objective_func(args, dataset_train, dataset_val)
-    study.optimize(objective_func, n_trials=args.tune.trials)
+    study.optimize(
+        objective_func, n_trials=args.tune.trials, catch=(torch.OutOfMemoryError,)
+    )
 
     pruned_trials = study.get_trials(deepcopy=False, states=[TrialState.PRUNED])
     complete_trials = study.get_trials(deepcopy=False, states=[TrialState.COMPLETE])
