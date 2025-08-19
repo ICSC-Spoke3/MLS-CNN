@@ -199,16 +199,16 @@ def objective(
             grad_scaler,
             verbose=False,
             send_to_device=args.lazy_loading,
-            loss_skew=args.train.loss_skew,
-            loss_kurt=args.train.loss_kurt,
+            use_loss_skew=args.train.loss_skew,
+            use_loss_kurt=args.train.loss_kurt,
             gauss_nllloss=args.train.gauss_nllloss,
         )
         val_loss = validation_loop(
             dataloader_val,
             model,
             send_to_device=args.lazy_loading,
-            loss_skew=args.train.loss_skew,
-            loss_kurt=args.train.loss_kurt,
+            use_loss_skew=args.train.loss_skew,
+            use_loss_kurt=args.train.loss_kurt,
             gauss_nllloss=args.train.gauss_nllloss,
         )
 

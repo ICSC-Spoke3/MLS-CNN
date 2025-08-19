@@ -372,8 +372,8 @@ def train_loop(
     optimizer: torch.optim.Optimizer,
     grad_scaler: torch.amp.GradScaler,
     send_to_device: bool = True,
-    loss_skew=False,
-    loss_kurt=False,
+    use_loss_skew=False,
+    use_loss_kurt=False,
     gauss_nllloss=False,
     verbose: bool = True,
 ) -> float:
@@ -435,7 +435,7 @@ def train_loop(
                         torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
                         dim=0,
                     )
-                    if loss_skew
+                    if use_loss_skew
                     else 0
                 )
                 loss_kurt = (
@@ -443,7 +443,7 @@ def train_loop(
                         torch.log(torch.mean(((pred_means - y) ** 4 - 3) ** 2, dim=0)),
                         dim=0,
                     )
-                    if loss_kurt
+                    if use_loss_kurt
                     else 0
                 )
 
@@ -479,8 +479,8 @@ def validation_loop(
     dataloader: DataLoader,
     model: nn.Module,
     send_to_device: bool = True,
-    loss_skew=False,
-    loss_kurt=False,
+    use_loss_skew=False,
+    use_loss_kurt=False,
     gauss_nllloss=False,
 ) -> float:
 
@@ -536,7 +536,7 @@ def validation_loop(
                         torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
                         dim=0,
                     )
-                    if loss_skew
+                    if use_loss_skew
                     else 0
                 )
                 loss_kurt = (
@@ -544,7 +544,7 @@ def validation_loop(
                         torch.log(torch.mean(((pred_means - y) ** 4 - 3) ** 2, dim=0)),
                         dim=0,
                     )
-                    if loss_kurt
+                    if use_loss_kurt
                     else 0
                 )
 
@@ -599,8 +599,8 @@ def training(
             optimizer,
             grad_scaler,
             send_to_device=send_to_device,
-            loss_skew=loss_skew,
-            loss_kurt=loss_kurt,
+            use_loss_skew=loss_skew,
+            use_loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
             verbose=verbose,
         )
@@ -608,8 +608,8 @@ def training(
             val_dataloader,
             model,
             send_to_device=send_to_device,
-            loss_skew=loss_skew,
-            loss_kurt=loss_kurt,
+            use_loss_skew=loss_skew,
+            use_loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
         )
 
