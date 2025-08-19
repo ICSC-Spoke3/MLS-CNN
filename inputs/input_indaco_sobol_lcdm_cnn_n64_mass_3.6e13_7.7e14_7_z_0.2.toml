@@ -39,7 +39,7 @@ lazy_loading = false
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the training phase, and not the HP tuning.
 # See below for the HP tuning phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
@@ -177,12 +177,12 @@ resume = true
 # If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 200
+trials = 50
 # Maximum number of epochs for each trial.
 n_epochs = 500
 
@@ -228,7 +228,7 @@ log = true
 
 [tune.batch_size]
 
-choices = [16, 32, 64, 128, 256, 512, 1024]
+choices = [16, 32, 64, 128]
 
 [tune.regressor_fc_layers]
 
