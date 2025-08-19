@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from torch import nn
 from torch.utils.data import DataLoader, random_split
 from torchinfo import summary
+from torch.amp import autocast, GradScaler
 
 import models as models
 import plot as plot
@@ -154,6 +155,9 @@ def do_train(args: Inputs) -> None:
     else:
         patience_early_stopping = args.train.patience_early_stopping
 
+    # Set gradient scaler (for AMP).
+    grad_scaler = GradScaler(device=device)
+
     # Train model.
     train_history, val_history = training(
         dataloader_train,
@@ -161,6 +165,7 @@ def do_train(args: Inputs) -> None:
         model,
         optimizer,
         scheduler,
+        grad_scaler,
         args.train.n_epochs,
         patience_early_stopping,
         args.output_dir,
@@ -363,6 +368,7 @@ def train_loop(
     dataloader: DataLoader,
     model: nn.Module,
     optimizer: torch.optim.Optimizer,
+    grad_scaler: torch.amp.GradScaler,
     send_to_device: bool = True,
     loss_skew=False,
     loss_kurt=False,
@@ -388,45 +394,54 @@ def train_loop(
 
         optimizer.zero_grad()
 
-        pred = model(X)
-        n_pred = int(pred.shape[1] / 2)
+        with autocast(device_type=device):
+            pred = model(X)
+            n_pred = int(pred.shape[1] / 2)
 
-        pred_means = pred[:, :n_pred]
-        pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
+            pred_means = pred[:, :n_pred]
+            pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
 
-        if gauss_nllloss:
+            if gauss_nllloss:
 
-            loss_fn = nn.GaussianNLLLoss()
-            loss = loss_fn(pred_means, y, pred_vars)
+                loss_fn = nn.GaussianNLLLoss()
+                loss = loss_fn(pred_means, y, pred_vars)
 
-        else:
+            else:
 
-            loss_mean = torch.sum(
-                torch.log(torch.mean((pred_means - y) ** 2, dim=0)), dim=0
-            )
-            loss_var = torch.sum(
-                torch.log(torch.mean(((pred_means - y) ** 2 - pred_vars) ** 2, dim=0)),
-                dim=0,
-            )
-            loss_skew = (
-                torch.sum(
-                    torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)), dim=0
+                loss_mean = torch.sum(
+                    torch.log(torch.mean((pred_means - y) ** 2, dim=0)), dim=0
                 )
-                if loss_skew
-                else 0
-            )
-            loss_kurt = (
-                torch.sum(
-                    torch.log(torch.mean(((pred_means - y) ** 4 - 3) ** 2, dim=0)),
+                loss_var = torch.sum(
+                    torch.log(
+                        torch.mean(((pred_means - y) ** 2 - pred_vars) ** 2, dim=0)
+                    ),
                     dim=0,
                 )
-                if loss_kurt
-                else 0
-            )
-            loss = loss_mean + loss_var + loss_skew + loss_kurt
+                loss_skew = (
+                    torch.sum(
+                        torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
+                        dim=0,
+                    )
+                    if loss_skew
+                    else 0
+                )
+                loss_kurt = (
+                    torch.sum(
+                        torch.log(torch.mean(((pred_means - y) ** 4 - 3) ** 2, dim=0)),
+                        dim=0,
+                    )
+                    if loss_kurt
+                    else 0
+                )
+                loss = loss_mean + loss_var + loss_skew + loss_kurt
 
-        loss.backward()
-        optimizer.step()
+        grad_scaler.scale(loss).backward()
+        grad_scaler.step(optimizer)
+
+        grad_scaler.update()
+
+        # loss.backward()
+        # optimizer.step()
 
         current_loss += loss.item()
 
@@ -515,6 +530,7 @@ def training(
     model: nn.Module,
     optimizer: torch.optim.Optimizer,
     scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau,
+    grad_scaler: torch.amp.GradScaler,
     epochs: int,
     patience: int,
     output: str,
@@ -541,6 +557,7 @@ def training(
             train_dataloader,
             model,
             optimizer,
+            grad_scaler,
             send_to_device=send_to_device,
             loss_skew=loss_skew,
             loss_kurt=loss_kurt,
