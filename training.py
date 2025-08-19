@@ -5,16 +5,16 @@ import torch
 from rich import print
 from sklearn.preprocessing import StandardScaler
 from torch import nn
+from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, random_split
 from torchinfo import summary
-from torch.amp import autocast, GradScaler
 
 import models as models
 import plot as plot
 from data import (
+    AugmentedDensityFieldDataset,
     get_dataset_single_probe,
     get_datasets_multiprobe,
-    AugmentedDensityFieldDataset,
 )
 from input_args import Inputs, suggest_args
 

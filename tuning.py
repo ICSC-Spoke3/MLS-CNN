@@ -5,6 +5,7 @@ import optuna
 import torch
 from optuna.trial import TrialState
 from rich import print
+from torch.amp import GradScaler
 from torch.utils.data import DataLoader, Dataset, random_split
 
 import models as models
@@ -182,16 +183,20 @@ def objective(
     else:
         patience_early_stopping = args.train.patience_early_stopping
 
+    # Set gradient scaler (for AMP).
+    grad_scaler = GradScaler(device=device)
+
     best_loss = 1e5
     best_epoch = -1
 
     # Loop over epochs.
     for epoch in range(args.tune.n_epochs):
 
-        train_loss = train_loop(
+        _ = train_loop(
             dataloader_train,
             model,
             optimizer,
+            grad_scaler,
             verbose=False,
             send_to_device=args.lazy_loading,
             loss_skew=args.train.loss_skew,
