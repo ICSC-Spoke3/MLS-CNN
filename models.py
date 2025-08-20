@@ -185,6 +185,12 @@ def get_cnn_extractor(
     else:
         raise ValueError("Wrong dimension value: ", dim)
 
+    # Use or not bias.
+    if batch_norm:
+        use_bias = False
+    else:
+        use_bias = True
+
     module = nn.Sequential()
 
     n_channels_previous = in_channels
@@ -202,6 +208,7 @@ def get_cnn_extractor(
                 conv_stride_1,
                 conv_padding_1,
                 padding_mode=padding_mode,
+                bias=use_bias,
             ),
         )
         if batch_norm:
@@ -217,6 +224,7 @@ def get_cnn_extractor(
                 conv_stride_2,
                 conv_padding_2,
                 padding_mode=padding_mode,
+                bias=use_bias,
             ),
         )
         if batch_norm:
@@ -236,6 +244,7 @@ def get_cnn_extractor(
             1,
             0,
             padding_mode=padding_mode,
+            bias=use_bias,
         ),
     )
     if batch_norm:
