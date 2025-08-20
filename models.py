@@ -220,6 +220,22 @@ def get_cnn_extractor(
             conv_layer(
                 n_channels,
                 n_channels,
+                conv_kernel_1,
+                conv_stride_1,
+                conv_padding_1,
+                padding_mode=padding_mode,
+                bias=use_bias,
+            ),
+        )
+        if batch_norm:
+            module.add_module(f"batch_norm_{i+1}_1", batch_norm_layer(n_channels))
+        module.add_module(f"activation_{i+1}_1", activation())
+
+        module.add_module(
+            f"conv_{i+1}_3",
+            conv_layer(
+                n_channels,
+                n_channels,
                 conv_kernel_2,
                 conv_stride_2,
                 conv_padding_2,
