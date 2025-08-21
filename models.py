@@ -18,6 +18,8 @@ class FCRegressorMultiProbe(nn.Module):
         dropout: float,
     ):
 
+        super().__init__()
+
         self.feature_extractor_list = feature_extractor_list
 
         # Use or not bias.
@@ -77,6 +79,8 @@ class FCRegressorSingleProbe(nn.Module):
         batch_norm: bool,
         dropout: float,
     ):
+
+        super().__init__()
 
         self.feature_extractor = feature_extractor
 
