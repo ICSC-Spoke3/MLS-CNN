@@ -96,6 +96,7 @@ class TrainInputs(BaseModel):
     nc_fc_units_per_layer: int
 
     density_field_n_channels_first: int
+    density_field_final_nside: int
 
 
 class PowerSpectrumInputs(BaseModel):
@@ -205,6 +206,7 @@ class TuneInputs(BaseModel):
     nc_fc_units_per_layer: HyperParamInt
 
     density_field_n_channels_first: HyperParamInt
+    density_field_final_nside: HyperParamInt
 
     dropout: HyperParamFloat
 
@@ -309,6 +311,13 @@ def suggest_args(
                 args.tune.density_field_n_channels_first.high,
                 step=args.tune.density_field_n_channels_first.step,
                 log=args.tune.density_field_n_channels_first.log,
+            )
+            args.train.density_field_final_nside = trial.suggest_int(
+                "density_field_final_nside",
+                args.tune.density_field_final_nside.low,
+                args.tune.density_field_final_nside.high,
+                step=args.tune.density_field_final_nside.step,
+                log=args.tune.density_field_final_nside.log,
             )
 
         elif probe == "power_spectrum":
