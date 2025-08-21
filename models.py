@@ -85,7 +85,7 @@ class FCRegressorSingleProbe(nn.Module):
         self.feature_extractor = feature_extractor
 
         # Use or not bias.
-        if self.batch_norm:
+        if batch_norm:
             use_bias = False
         else:
             use_bias = True
