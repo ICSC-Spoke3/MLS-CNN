@@ -132,8 +132,8 @@ def get_cnn_extractor(
     batch_norm: bool,
 ):
 
-    if final_nside <= in_nside:
-        raise ValueError(f"`finale_nsise` must be larger than `in_nsie`.")
+    if final_nside >= in_nside:
+        raise ValueError(f"`finale_nside` must be strictly smaller than `in_nside`.")
 
     # Activation function.
     activation = nn.ReLU
