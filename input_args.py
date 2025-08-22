@@ -88,15 +88,19 @@ class TrainInputs(BaseModel):
 
     regressor_fc_layers: int
     regressor_fc_units_per_layer: int
+    regressor_activation: str = "relu"
 
     ps_fc_layers: int
     ps_fc_units_per_layer: int
+    ps_activation: str = "relu"
 
     nc_fc_layers: int
     nc_fc_units_per_layer: int
+    nc_activation: str = "relu"
 
     density_field_n_channels_first: int
     density_field_final_nside: int
+    density_field_activation: str = "relu"
 
 
 class PowerSpectrumInputs(BaseModel):
@@ -198,15 +202,19 @@ class TuneInputs(BaseModel):
 
     regressor_fc_layers: HyperParamInt
     regressor_fc_units_per_layer: HyperParamInt
+    regressor_activation: HyperParamCategorical
 
     ps_fc_layers: HyperParamInt
     ps_fc_units_per_layer: HyperParamInt
+    ps_activation: HyperParamCategorical
 
     nc_fc_layers: HyperParamInt
     nc_fc_units_per_layer: HyperParamInt
+    nc_activation: HyperParamCategorical
 
     density_field_n_channels_first: HyperParamInt
     density_field_final_nside: HyperParamCategorical
+    density_field_activation: HyperParamCategorical
 
     dropout: HyperParamFloat
 
@@ -316,6 +324,9 @@ def suggest_args(
                 "density_field_final_nside",
                 args.tune.density_field_final_nside.choices,
             )
+            args.train.density_field_activation = trial.suggest_categorical(
+                "density_field_activation", args.tune.density_field_activation.choices
+            )
 
         elif probe == "power_spectrum":
 
@@ -332,6 +343,9 @@ def suggest_args(
                 args.tune.ps_fc_units_per_layer.high,
                 step=args.tune.ps_fc_units_per_layer.step,
                 log=args.tune.ps_fc_units_per_layer.log,
+            )
+            args.train.ps_activation = trial.suggest_categorical(
+                "ps_activation", args.tune.ps_activation.choices
             )
 
         elif probe == "number_counts":
@@ -350,6 +364,9 @@ def suggest_args(
                 step=args.tune.nc_fc_units_per_layer.step,
                 log=args.tune.nc_fc_units_per_layer.log,
             )
+            args.train.nc_activation = trial.suggest_categorical(
+                "nc_activation", args.tune.nc_activation.choices
+            )
 
         else:
             raise ValueError(f"Unsupported probe: {probe}.")
@@ -367,6 +384,9 @@ def suggest_args(
         args.tune.regressor_fc_units_per_layer.high,
         step=args.tune.regressor_fc_units_per_layer.step,
         log=args.tune.regressor_fc_units_per_layer.log,
+    )
+    args.train.regressor_activation = trial.suggest_categorical(
+        "regressor_activation", args.tune.regressor_activation.choices
     )
 
     return args

@@ -5,6 +5,15 @@ from torch.utils.data import Dataset
 
 from input_args import Inputs
 
+activation_dict = {
+    "relu": nn.ReLU,
+    "hardswish": nn.Hardswish,
+    "leakyrelu": nn.LeakyReLU,
+    "gelu": nn.GELU,
+    "celu": nn.CELU,
+    "selu": nn.SELU,
+}
+
 
 class FCRegressorMultiProbe(nn.Module):
 
@@ -16,20 +25,21 @@ class FCRegressorMultiProbe(nn.Module):
         output_size: int,
         batch_norm: bool,
         dropout: float,
+        activation_func: str,
     ):
 
         super().__init__()
 
         self.feature_extractor_list = feature_extractor_list
 
+        # Activation function.
+        activation = activation_dict[activation_func]
+
         # Use or not bias.
         if batch_norm:
             use_bias = False
         else:
             use_bias = True
-
-        # Activation.
-        activation = nn.ReLU
 
         # FC module.
         self.fc_module = nn.Sequential()
@@ -78,20 +88,21 @@ class FCRegressorSingleProbe(nn.Module):
         output_size: int,
         batch_norm: bool,
         dropout: float,
+        activation_func: str,
     ):
 
         super().__init__()
 
         self.feature_extractor = feature_extractor
 
+        # Activation function.
+        activation = activation_dict[activation_func]
+
         # Use or not bias.
         if batch_norm:
             use_bias = False
         else:
             use_bias = True
-
-        # Activation.
-        activation = nn.ReLU
 
         # FC module.
         self.fc_module = nn.Sequential()
@@ -134,13 +145,14 @@ def get_cnn_extractor(
     channels_factor: int,
     final_nside: int,
     batch_norm: bool,
+    activation_func: str,
 ):
 
     if final_nside >= in_nside:
         raise ValueError(f"`finale_nside` must be strictly smaller than `in_nside`.")
 
     # Activation function.
-    activation = nn.ReLU
+    activation = activation_dict[activation_func]
 
     # Convolution settings.
     # This window conserves the image size.
@@ -219,10 +231,12 @@ def get_cnn_extractor(
     return module
 
 
-def get_fc_extractor(n_hidden_layers, n_units_per_hidden_layer, batch_norm, dropout):
+def get_fc_extractor(
+    n_hidden_layers, n_units_per_hidden_layer, batch_norm, dropout, activation_func
+):
 
     # Activation function.
-    activation = nn.ReLU
+    activation = activation_dict[activation_func]
 
     # Use or not bias.
     if batch_norm:
@@ -279,6 +293,7 @@ def get_model(args: Inputs, dataset: Dataset):
                 2,
                 args.train.density_field_final_nside,
                 args.train.batch_norm,
+                args.train.density_field_activation,
             )
 
             feature_extractor_list.append(cnn_extractor)
@@ -291,6 +306,7 @@ def get_model(args: Inputs, dataset: Dataset):
                     args.train.ps_fc_units_per_layer,
                     args.train.batch_norm,
                     args.train.dropout,
+                    args.train.ps_activation,
                 )
             )
 
@@ -302,6 +318,7 @@ def get_model(args: Inputs, dataset: Dataset):
                     args.train.nc_fc_units_per_layer,
                     args.train.batch_norm,
                     args.train.dropout,
+                    args.train.nc_activation,
                 )
             )
 
@@ -318,6 +335,7 @@ def get_model(args: Inputs, dataset: Dataset):
             output_size=output_size,
             batch_norm=args.train.batch_norm,
             dropout=args.train.dropout,
+            activation_func=args.train.regressor_activation,
         )
     else:
         feature_extractor_list = nn.ModuleList(feature_extractor_list)
@@ -328,6 +346,7 @@ def get_model(args: Inputs, dataset: Dataset):
             output_size=output_size,
             batch_norm=args.train.batch_norm,
             dropout=args.train.dropout,
+            activation_func=args.train.regressor_activation,
         )
 
     return model
