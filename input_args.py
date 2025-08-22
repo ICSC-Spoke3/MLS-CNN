@@ -84,23 +84,25 @@ class TrainInputs(BaseModel):
 
     dropout: float
 
-    batch_norm: bool
-
     regressor_fc_layers: int
     regressor_fc_units_per_layer: int
     regressor_activation: str = "relu"
+    regressor_batch_norm: bool = True
 
     ps_fc_layers: int
     ps_fc_units_per_layer: int
     ps_activation: str = "relu"
+    ps_batch_norm: bool = True
 
     nc_fc_layers: int
     nc_fc_units_per_layer: int
     nc_activation: str = "relu"
+    nc_batch_norm: bool = True
 
     density_field_n_channels_first: int
     density_field_final_nside: int
     density_field_activation: str = "relu"
+    density_field_batch_norm: bool = True
 
 
 class PowerSpectrumInputs(BaseModel):
@@ -203,18 +205,22 @@ class TuneInputs(BaseModel):
     regressor_fc_layers: HyperParamInt
     regressor_fc_units_per_layer: HyperParamInt
     regressor_activation: HyperParamCategorical
+    regressor_batch_norm: HyperParamCategorical
 
     ps_fc_layers: HyperParamInt
     ps_fc_units_per_layer: HyperParamInt
     ps_activation: HyperParamCategorical
+    ps_batch_norm: HyperParamCategorical
 
     nc_fc_layers: HyperParamInt
     nc_fc_units_per_layer: HyperParamInt
     nc_activation: HyperParamCategorical
+    nc_batch_norm: HyperParamCategorical
 
     density_field_n_channels_first: HyperParamInt
     density_field_final_nside: HyperParamCategorical
     density_field_activation: HyperParamCategorical
+    density_field_batch_norm: HyperParamCategorical
 
     dropout: HyperParamFloat
 
@@ -327,6 +333,9 @@ def suggest_args(
             args.train.density_field_activation = trial.suggest_categorical(
                 "density_field_activation", args.tune.density_field_activation.choices
             )
+            args.train.density_field_batch_norm = trial.suggest_categorical(
+                "density_field_batch_norm", args.tune.density_field_batch_norm.choices
+            )
 
         elif probe == "power_spectrum":
 
@@ -346,6 +355,9 @@ def suggest_args(
             )
             args.train.ps_activation = trial.suggest_categorical(
                 "ps_activation", args.tune.ps_activation.choices
+            )
+            args.train.ps_batch_norm = trial.suggest_categorical(
+                "ps_batch_norm", args.tune.ps_batch_norm.choices
             )
 
         elif probe == "number_counts":
@@ -367,6 +379,9 @@ def suggest_args(
             args.train.nc_activation = trial.suggest_categorical(
                 "nc_activation", args.tune.nc_activation.choices
             )
+            args.train.nc_batch_norm = trial.suggest_categorical(
+                "nc_batch_norm", args.tune.nc_batch_norm.choices
+            )
 
         else:
             raise ValueError(f"Unsupported probe: {probe}.")
@@ -387,6 +402,9 @@ def suggest_args(
     )
     args.train.regressor_activation = trial.suggest_categorical(
         "regressor_activation", args.tune.regressor_activation.choices
+    )
+    args.train.regressor_batch_norm = trial.suggest_categorical(
+        "regressor_batch_norm", args.tune.regressor_batch_norm.choices
     )
 
     return args

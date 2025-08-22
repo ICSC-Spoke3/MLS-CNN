@@ -292,7 +292,7 @@ def get_model(args: Inputs, dataset: Dataset):
                 args.train.density_field_n_channels_first,
                 2,
                 args.train.density_field_final_nside,
-                args.train.batch_norm,
+                args.train.density_field_batch_norm,
                 args.train.density_field_activation,
             )
 
@@ -304,7 +304,7 @@ def get_model(args: Inputs, dataset: Dataset):
                 get_fc_extractor(
                     args.train.ps_fc_layers,
                     args.train.ps_fc_units_per_layer,
-                    args.train.batch_norm,
+                    args.train.ps_batch_norm,
                     args.train.dropout,
                     args.train.ps_activation,
                 )
@@ -316,7 +316,7 @@ def get_model(args: Inputs, dataset: Dataset):
                 get_fc_extractor(
                     args.train.nc_fc_layers,
                     args.train.nc_fc_units_per_layer,
-                    args.train.batch_norm,
+                    args.train.nc_batch_norm,
                     args.train.dropout,
                     args.train.nc_activation,
                 )
@@ -333,7 +333,7 @@ def get_model(args: Inputs, dataset: Dataset):
             n_hidden_layers=args.train.regressor_fc_layers,
             n_units_per_hidden_layer=args.train.regressor_fc_units_per_layer,
             output_size=output_size,
-            batch_norm=args.train.batch_norm,
+            batch_norm=args.train.regressor_batch_norm,
             dropout=args.train.dropout,
             activation_func=args.train.regressor_activation,
         )
@@ -344,7 +344,7 @@ def get_model(args: Inputs, dataset: Dataset):
             n_hidden_layers=args.train.regressor_fc_layers,
             n_units_per_hidden_layer=args.train.regressor_fc_units_per_layer,
             output_size=output_size,
-            batch_norm=args.train.batch_norm,
+            batch_norm=args.train.regressor_batch_norm,
             dropout=args.train.dropout,
             activation_func=args.train.regressor_activation,
         )
