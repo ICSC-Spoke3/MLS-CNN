@@ -27,10 +27,9 @@ def do_tune(args: Inputs) -> None:
     sampler = optuna.samplers.TPESampler(n_startup_trials=10, constant_liar=False)
 
     if args.tune.pruner == "hyperband":
-        hyperband_max_resource = args.tune.n_epochs
         pruner = optuna.pruners.HyperbandPruner(
             min_resource=args.tune.hyperband_min_resource,
-            max_resource=hyperband_max_resource,
+            max_resource="auto",
             reduction_factor=args.tune.hyperband_reduction_factor,
         )
 
@@ -101,6 +100,7 @@ def do_tune(args: Inputs) -> None:
     print("Best trial:")
     trial = study.best_trial
 
+    print("  Number: ", trial.number)
     print("  Value: ", trial.value)
 
     print("  Params: ")
