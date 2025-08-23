@@ -103,6 +103,7 @@ class TrainInputs(BaseModel):
     density_field_final_nside: int
     density_field_activation: str = "relu"
     density_field_batch_norm: bool = True
+    density_field_pooling: str = "average"
 
 
 class PowerSpectrumInputs(BaseModel):
@@ -221,6 +222,7 @@ class TuneInputs(BaseModel):
     density_field_final_nside: HyperParamCategorical
     density_field_activation: HyperParamCategorical
     density_field_batch_norm: HyperParamCategorical
+    density_field_pooling: HyperParamCategorical
 
     dropout: HyperParamFloat
 
@@ -335,6 +337,9 @@ def suggest_args(
             )
             args.train.density_field_batch_norm = trial.suggest_categorical(
                 "density_field_batch_norm", args.tune.density_field_batch_norm.choices
+            )
+            args.train.density_field_pooling = trial.suggest_categorical(
+                "density_field_pooling", args.tune.density_field_pooling.choices
             )
 
         elif probe == "power_spectrum":

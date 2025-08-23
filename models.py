@@ -146,7 +146,18 @@ def get_cnn_extractor(
     final_nside: int,
     batch_norm: bool,
     activation_func: str,
+    pool_layer_type: str,
 ):
+
+    pool_layer_dict_2d = {
+        "average": nn.AvgPool2d,
+        "max": nn.MaxPool2d,
+    }
+
+    pool_layer_dict_3d = {
+        "average": nn.AvgPool3d,
+        "max": nn.MaxPool3d,
+    }
 
     if final_nside >= in_nside:
         raise ValueError(f"`finale_nside` must be strictly smaller than `in_nside`.")
@@ -173,11 +184,11 @@ def get_cnn_extractor(
     if dim == 2:
         conv_layer = nn.Conv2d
         batch_norm_layer = nn.BatchNorm2d
-        pool_layer = nn.AvgPool2d
+        pool_layer = pool_layer_dict_2d[pool_layer_type]
     elif dim == 3:
         conv_layer = nn.Conv3d
         batch_norm_layer = nn.BatchNorm3d
-        pool_layer = nn.AvgPool3d
+        pool_layer = pool_layer_dict_3d[pool_layer_type]
     else:
         raise ValueError("Wrong dimension value: ", dim)
 
