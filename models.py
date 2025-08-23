@@ -147,6 +147,7 @@ def get_cnn_extractor(
     batch_norm: bool,
     activation_func: str,
     pool_layer_type: str,
+    n_conv_per_block: int,
 ):
 
     pool_layer_dict_2d = {
@@ -161,6 +162,9 @@ def get_cnn_extractor(
 
     if final_nside >= in_nside:
         raise ValueError(f"`finale_nside` must be strictly smaller than `in_nside`.")
+
+    if n_conv_per_block < 1:
+        raise ValueError(f"`n_conv_per_block` must be > 1.")
 
     # Activation function.
     activation = activation_dict[activation_func]
@@ -178,7 +182,7 @@ def get_cnn_extractor(
 
     padding_mode = "zeros"
 
-    num_conv_layers = int(np.log2(in_nside / final_nside))
+    n_conv_blocks = int(np.log2(in_nside / final_nside))
 
     # Batch norm.
     if dim == 2:
@@ -202,28 +206,30 @@ def get_cnn_extractor(
 
     n_channels_previous = in_channels
 
-    for i in range(num_conv_layers):
+    for i in range(n_conv_blocks):
 
         n_channels = channels_factor**i * channels_first
 
-        module.add_module(
-            f"conv_{i+1}",
-            conv_layer(
-                n_channels_previous,
-                n_channels,
-                conv_kernel_1,
-                conv_stride_1,
-                conv_padding_1,
-                padding_mode=padding_mode,
-                bias=use_bias,
-            ),
-        )
-        if batch_norm:
-            module.add_module(f"batch_norm_{i+1}", batch_norm_layer(n_channels))
-        module.add_module(f"activation_{i+1}", activation())
+        for j in range(n_conv_per_block):
+
+            module.add_module(
+                f"conv_{i+1}_{j}",
+                conv_layer(
+                    n_channels_previous if j == 0 else n_channels,
+                    n_channels,
+                    conv_kernel_1,
+                    conv_stride_1,
+                    conv_padding_1,
+                    padding_mode=padding_mode,
+                    bias=use_bias,
+                ),
+            )
+            if batch_norm:
+                module.add_module(f"batch_norm_{i+1}_{j}", batch_norm_layer(n_channels))
+            module.add_module(f"activation_{i+1}_{j}", activation())
 
         module.add_module(
-            f"avg_pool_{i+1}",
+            f"pool_{i+1}",
             pool_layer(
                 conv_kernel_2,
                 conv_stride_2,
@@ -305,7 +311,8 @@ def get_model(args: Inputs, dataset: Dataset):
                 args.train.density_field_final_nside,
                 args.train.density_field_batch_norm,
                 args.train.density_field_activation,
-                args.train.density_field_pooling
+                args.train.density_field_pooling,
+                args.train.density_field_n_conv_per_block,
             )
 
             feature_extractor_list.append(cnn_extractor)

@@ -101,6 +101,7 @@ class TrainInputs(BaseModel):
 
     density_field_n_channels_first: int
     density_field_final_nside: int
+    density_field_n_conv_per_block: int = 1
     density_field_activation: str = "relu"
     density_field_batch_norm: bool = True
     density_field_pooling: str = "average"
@@ -220,6 +221,7 @@ class TuneInputs(BaseModel):
 
     density_field_n_channels_first: HyperParamInt
     density_field_final_nside: HyperParamCategorical
+    density_field_n_conv_per_block: HyperParamInt
     density_field_activation: HyperParamCategorical
     density_field_batch_norm: HyperParamCategorical
     density_field_pooling: HyperParamCategorical
@@ -331,6 +333,13 @@ def suggest_args(
             args.train.density_field_final_nside = trial.suggest_categorical(
                 "density_field_final_nside",
                 args.tune.density_field_final_nside.choices,
+            )
+            args.train.density_field_n_conv_per_block = trial.suggest_int(
+                "density_field_n_conv_per_block",
+                args.tune.density_field_n_conv_per_block.low,
+                args.tune.density_field_n_conv_per_block.high,
+                step=args.tune.density_field_n_conv_per_block.step,
+                log=args.tune.density_field_n_conv_per_block.log,
             )
             args.train.density_field_activation = trial.suggest_categorical(
                 "density_field_activation", args.tune.density_field_activation.choices
