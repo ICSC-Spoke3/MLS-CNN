@@ -15,6 +15,8 @@ from tuning import do_tune
 
 def main(cli_args):
 
+    torch.backends.cudnn.benchmark = True
+
     print("\n----- CUDA and GPU availability -----\n")
     print("CUDA available: ", torch.cuda.is_available())
     print("Number of GPUs available: ", torch.cuda.device_count())

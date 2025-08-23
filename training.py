@@ -71,13 +71,13 @@ def do_train(args: Inputs) -> None:
     print(f"-------------------------------\n")
 
     # Init. dataloaders.
-    # TODO: use another variable than n_threads for the number of workers.
+    # TODO: use num_workers > 0 when lazy_loading=True -> needs job with multiple cpu processes.
     dataloader_train = DataLoader(
         dataset_train,
         batch_size=args.train.batch_size,
         drop_last=True,
         shuffle=True,
-        num_workers=args.n_threads if args.lazy_loading else 0,
+        num_workers=0,
         pin_memory=args.lazy_loading,
     )
     dataloader_val = DataLoader(
@@ -85,7 +85,7 @@ def do_train(args: Inputs) -> None:
         batch_size=args.train.batch_size,
         drop_last=False,
         shuffle=False,
-        num_workers=args.n_threads if args.lazy_loading else 0,
+        num_workers=0,
         pin_memory=args.lazy_loading,
     )
     dataloader_test = DataLoader(
@@ -93,7 +93,7 @@ def do_train(args: Inputs) -> None:
         batch_size=args.train.batch_size,
         drop_last=False,
         shuffle=False,
-        num_workers=args.n_threads if args.lazy_loading else 0,
+        num_workers=0,
         pin_memory=args.lazy_loading,
     )
 
@@ -375,19 +375,17 @@ def train_loop(
     use_loss_skew=False,
     use_loss_kurt=False,
     gauss_nllloss=False,
-    verbose: bool = True,
 ) -> float:
 
     assert dataloader.batch_size is not None
 
     num_batches = len(dataloader)
-    size = num_batches * dataloader.batch_size
 
     current_loss = 0.0
 
     model.train()
 
-    for batch, (X, y) in enumerate(dataloader):
+    for _, (X, y) in enumerate(dataloader):
 
         if send_to_device:
             if isinstance(X, list):
@@ -396,7 +394,7 @@ def train_loop(
                 X = X.to(device, non_blocking=True)
             y = y.to(device, non_blocking=True)
 
-        optimizer.zero_grad()
+        optimizer.zero_grad(set_to_none=True)
 
         with autocast(device_type=device):
 
@@ -465,11 +463,6 @@ def train_loop(
         # optimizer.step()
 
         current_loss += loss.item()
-
-        if batch % 10 == 9:
-            loss, current = loss.item(), (batch + 1) * dataloader.batch_size
-            if verbose:
-                print(f"batch {batch+1} loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
     # TODO maybe at some point report the average loss over N last batches instead of all batches.
     return current_loss / num_batches
