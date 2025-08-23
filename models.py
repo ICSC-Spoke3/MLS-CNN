@@ -305,6 +305,7 @@ def get_model(args: Inputs, dataset: Dataset):
                 args.train.density_field_final_nside,
                 args.train.density_field_batch_norm,
                 args.train.density_field_activation,
+                args.train.density_field_pooling
             )
 
             feature_extractor_list.append(cnn_extractor)
