@@ -67,17 +67,15 @@ def do_tune(args: Inputs) -> None:
     print(f"-------------------------------")
     # Get full dataset.
     if len(args.probes.probe_list) == 1:
-        dataset, scaler_labels, scaler_data = get_dataset_single_probe(
+        dataset, _, _ = get_dataset_single_probe(
             args.probes.probe_list[0], args, verbose=True
         )
     else:
-        dataset, scaler_labels, scaler_data = get_datasets_multiprobe(
-            args, verbose=True
-        )
+        dataset, _, _ = get_datasets_multiprobe(args, verbose=True)
     # Split into training, validation, and test datasets.
     fraction_train = 1 - args.fraction_validation - args.fraction_test
     generator = torch.Generator().manual_seed(args.split_seed)
-    dataset_train, dataset_val, dataset_test = random_split(
+    dataset_train, dataset_val, _ = random_split(
         dataset,
         [fraction_train, args.fraction_validation, args.fraction_test],
         generator=generator,
@@ -129,23 +127,22 @@ def objective(
     args = suggest_args(trial, args)
 
     # Init. dataloaders.
+    # TODO: use num_workers > 0 when lazy_loading=True -> needs job with multiple cpu processes.
     dataloader_train = DataLoader(
         dataset_train,
         batch_size=args.train.batch_size,
         drop_last=True,
         shuffle=True,
-        # num_workers=args.n_threads,
         num_workers=0,
-        # pin_memory=True,
+        pin_memory=args.lazy_loading,
     )
     dataloader_val = DataLoader(
         dataset_val,
         batch_size=args.train.batch_size,
         drop_last=False,
         shuffle=False,
-        # num_workers=args.n_threads,
         num_workers=0,
-        # pin_memory=True
+        pin_memory=args.lazy_loading,
     )
 
     # Init. model.
