@@ -595,7 +595,6 @@ def training(
             use_loss_skew=loss_skew,
             use_loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
-            verbose=verbose,
         )
         val_loss = validation_loop(
             val_dataloader,

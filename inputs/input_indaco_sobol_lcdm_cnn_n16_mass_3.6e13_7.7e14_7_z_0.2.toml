@@ -29,14 +29,14 @@ split_seed = 1234
 verbose = true
 
 # Lazy data loading.
-# If False, read whole dataset from disk at once into memery and send everything to device (CPU/GPU).
-# If True, read data from disk and send to device by batches.
+# If false, read whole dataset from disk at once into memery and send everything to device (CPU/GPU).
+# If true, read data from disk and send to device by batches.
 lazy_loading = false
 
 [train]
 # These are the parameters used to train the network.
 
-# If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
+# If true, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the training phase, and not the HP tuning.
 # See below for the HP tuning phase.
 compile_model = false
@@ -91,24 +91,25 @@ eps = 1e-8
 # Dropout rate.
 dropout = 0
 
-# If true, use BatchNormalization.
-batch_norm = true
-
 # Parameters for the final regression FC block.
 regressor_fc_layers = 2
 regressor_fc_units_per_layer = 128
+regressor_activation = "relu"
 
 # Parameters for the power spectrum FC block.
 ps_fc_layers = 2
 ps_fc_units_per_layer = 128
+ps_activation = "relu"
 
 # Parameters for the number counts FC block.
 nc_fc_layers = 2
 nc_fc_units_per_layer = 128
+nc_activation = "relu"
 
 # Parameters for the density_field convolutional block.
 density_field_n_channels_first = 10
 density_field_final_nside = 4
+density_field_activation = "relu"
 
 [probes]
 # These parameters control the cosmological probes that are used for inference.
@@ -135,6 +136,8 @@ mobs_min = [3.6e13, 6e13, 1e14, 1.7e14, 2.8e14, 4.6e14, 7.7e14]
 mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0.2]
+
+n_augment_flip = 0
 
 [probes.power_spectrum]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
@@ -175,7 +178,7 @@ study_name = "mystudy"
 # Resume from previous study with same name if it exists.
 resume = true
 
-# If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
+# If true, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
 compile_model = false
@@ -183,21 +186,21 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 900
+trials = 100
 # Maximum number of epochs for each trial.
-n_epochs = 500
+n_epochs = 300
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
-pruner = "median"
+pruner = "hyperband"
 
 # Parameters for median pruner (see optuna documentation).
-median_n_startup_trials = 5
-median_n_warmup_steps = 10
+median_n_startup_trials = 10
+median_n_warmup_steps = 20
 median_n_min_trials = 1
 
 # Parameters for hyperband pruner (see optuna documentation).
-hyperband_min_resource = 10
-hyperband_reduction_factor = 3
+hyperband_min_resource = 30
+hyperband_reduction_factor = 2
 
 [tune.learning_rate]
 
@@ -243,6 +246,14 @@ low = 100
 high = 1000
 step = 100
 
+[tune.regressor_activation]
+
+choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu"]
+
+[tune.regressor_batch_norm]
+
+choices = [true, false]
+
 [tune.ps_fc_layers]
 
 low = 1
@@ -254,6 +265,14 @@ step = 1
 low = 100
 high = 1000
 step = 100
+
+[tune.ps_activation]
+
+choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu"]
+
+[tune.ps_batch_norm]
+
+choices = [true, false]
 
 [tune.nc_fc_layers]
 
@@ -267,6 +286,14 @@ low = 100
 high = 1000
 step = 100
 
+[tune.nc_activation]
+
+choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu"]
+
+[tune.nc_batch_norm]
+
+choices = [true, false]
+
 [tune.density_field_n_channels_first]
 
 low = 5
@@ -276,6 +303,24 @@ step = 5
 [tune.density_field_final_nside]
 
 choices = [2, 4, 8]
+
+[tune.density_field_n_conv_per_block]
+
+low = 1
+high = 3
+step = 1
+
+[tune.density_field_activation]
+
+choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu"]
+
+[tune.density_field_batch_norm]
+
+choices = [true, false]
+
+[tune.density_field_pooling]
+
+choices = ["average", "max"]
 
 [tune.dropout]
 
