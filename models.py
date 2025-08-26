@@ -26,6 +26,7 @@ class FCRegressorMultiProbe(nn.Module):
         batch_norm: bool,
         dropout: float,
         activation_func: str,
+        pred_moments: bool,
     ):
 
         super().__init__()
@@ -58,7 +59,9 @@ class FCRegressorMultiProbe(nn.Module):
             self.fc_module.add_module(f"dropout_{i+1}", nn.Dropout(p=dropout))
 
         # Output layer.
-        self.fc_output = nn.Linear(n_units_per_hidden_layer, output_size * 2)
+        if pred_moments:
+            output_size *= 2
+        self.fc_output = nn.Linear(n_units_per_hidden_layer, output_size)
 
     def forward(self, x_list):
 
@@ -89,6 +92,7 @@ class FCRegressorSingleProbe(nn.Module):
         batch_norm: bool,
         dropout: float,
         activation_func: str,
+        pred_moments: bool,
     ):
 
         super().__init__()
@@ -121,7 +125,9 @@ class FCRegressorSingleProbe(nn.Module):
             self.fc_module.add_module(f"dropout_{i+1}", nn.Dropout(p=dropout))
 
         # Output layer.
-        self.fc_output = nn.Linear(n_units_per_hidden_layer, output_size * 2)
+        if pred_moments:
+            output_size *= 2
+        self.fc_output = nn.Linear(n_units_per_hidden_layer, output_size)
 
     def forward(self, x):
 
@@ -355,6 +361,7 @@ def get_model(args: Inputs, dataset: Dataset):
             batch_norm=args.train.regressor_batch_norm,
             dropout=args.train.dropout,
             activation_func=args.train.regressor_activation,
+            pred_moments=args.pred_moments,
         )
     else:
         feature_extractor_list = nn.ModuleList(feature_extractor_list)
@@ -366,6 +373,7 @@ def get_model(args: Inputs, dataset: Dataset):
             batch_norm=args.train.regressor_batch_norm,
             dropout=args.train.dropout,
             activation_func=args.train.regressor_activation,
+            pred_moments=args.pred_moments,
         )
 
     return model

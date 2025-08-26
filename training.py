@@ -168,6 +168,7 @@ def do_train(args: Inputs) -> None:
         grad_scaler,
         args.train.n_epochs,
         patience_early_stopping,
+        args.pred_moments,
         args.output_dir,
         send_to_device=args.lazy_loading,
         loss_skew=args.train.loss_skew,
@@ -199,6 +200,7 @@ def do_train(args: Inputs) -> None:
         model,
         dataloader_train,
         scaler_labels,
+        args.pred_moments,
         "training",
         args.output_dir,
         send_to_device=args.lazy_loading,
@@ -207,6 +209,7 @@ def do_train(args: Inputs) -> None:
         model,
         dataloader_val,
         scaler_labels,
+        args.pred_moments,
         "validation",
         args.output_dir,
         send_to_device=args.lazy_loading,
@@ -215,6 +218,7 @@ def do_train(args: Inputs) -> None:
         model,
         dataloader_test,
         scaler_labels,
+        args.pred_moments,
         "test",
         args.output_dir,
         send_to_device=args.lazy_loading,
@@ -247,7 +251,7 @@ def do_train(args: Inputs) -> None:
         param_names,
         param_labels_dict,
         args.output_dir,
-        plot_std=True,
+        plot_std=args.pred_moments,
     )
     plot.plot_pred_vs_target(
         target_val,
@@ -256,7 +260,7 @@ def do_train(args: Inputs) -> None:
         param_names,
         param_labels_dict,
         args.output_dir,
-        plot_std=True,
+        plot_std=args.pred_moments,
     )
     plot.plot_pred_vs_target(
         target_test,
@@ -265,7 +269,7 @@ def do_train(args: Inputs) -> None:
         param_names,
         param_labels_dict,
         args.output_dir,
-        plot_std=True,
+        plot_std=args.pred_moments,
     )
 
     # Same for S8 if not in base parameters.
@@ -371,6 +375,7 @@ def train_loop(
     model: nn.Module,
     optimizer: torch.optim.Optimizer,
     grad_scaler: torch.amp.GradScaler,
+    pred_moments: bool,
     send_to_device: bool = True,
     use_loss_skew=False,
     use_loss_kurt=False,
@@ -399,14 +404,25 @@ def train_loop(
         with autocast(device_type=device):
 
             pred = model(X)
-            n_pred = int(pred.shape[1] / 2)
 
-            pred_means = pred[:, :n_pred]
-            pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
+            if pred_moments:
+
+                n_pred = int(pred.shape[1] / 2)
+                pred_means = pred[:, :n_pred]
+                pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
+
+            else:
+
+                pred_means = pred
 
             del pred
 
             if gauss_nllloss:
+
+                if not pred_moments:
+                    raise ValueError(
+                        "GaussianNLLLoss is incompatible with pred_moments=False."
+                    )
 
                 loss_fn = nn.GaussianNLLLoss()
                 loss = loss_fn(pred_means, y, pred_vars)
@@ -419,31 +435,42 @@ def train_loop(
                 loss_mean = torch.sum(
                     torch.log(torch.mean((pred_means - y) ** 2, dim=0)), dim=0
                 )
-                loss_var = torch.sum(
-                    torch.log(
-                        torch.mean(((pred_means - y) ** 2 - pred_vars) ** 2, dim=0)
-                    ),
-                    dim=0,
-                )
 
-                del pred_vars
+                if pred_moments:
 
-                loss_skew = (
-                    torch.sum(
-                        torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
+                    loss_var = torch.sum(
+                        torch.log(
+                            torch.mean(((pred_means - y) ** 2 - pred_vars) ** 2, dim=0)
+                        ),
                         dim=0,
                     )
-                    if use_loss_skew
-                    else 0
-                )
-                loss_kurt = (
-                    torch.sum(
-                        torch.log(torch.mean(((pred_means - y) ** 4 - 3) ** 2, dim=0)),
-                        dim=0,
+
+                    del pred_vars
+
+                    loss_skew = (
+                        torch.sum(
+                            torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
+                            dim=0,
+                        )
+                        if use_loss_skew
+                        else 0
                     )
-                    if use_loss_kurt
-                    else 0
-                )
+                    loss_kurt = (
+                        torch.sum(
+                            torch.log(
+                                torch.mean(((pred_means - y) ** 4 - 3) ** 2, dim=0)
+                            ),
+                            dim=0,
+                        )
+                        if use_loss_kurt
+                        else 0
+                    )
+
+                else:
+
+                    loss_var = 0
+                    loss_skew = 0
+                    loss_kurt = 0
 
                 del pred_means
 
@@ -459,18 +486,15 @@ def train_loop(
 
         grad_scaler.update()
 
-        # loss.backward()
-        # optimizer.step()
-
         current_loss += loss.item()
 
-    # TODO maybe at some point report the average loss over N last batches instead of all batches.
     return current_loss / num_batches
 
 
 def validation_loop(
     dataloader: DataLoader,
     model: nn.Module,
+    pred_moments: bool,
     send_to_device: bool = True,
     use_loss_skew=False,
     use_loss_kurt=False,
@@ -495,14 +519,25 @@ def validation_loop(
                 y = y.to(device, non_blocking=True)
 
             pred = model(X)
-            n_pred = int(pred.shape[1] / 2)
 
-            pred_means = pred[:, :n_pred]
-            pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
+            if pred_moments:
+
+                n_pred = int(pred.shape[1] / 2)
+                pred_means = pred[:, :n_pred]
+                pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
+
+            else:
+
+                pred_means = pred
 
             del pred
 
             if gauss_nllloss:
+
+                if not pred_moments:
+                    raise ValueError(
+                        "GaussianNLLLoss is incompatible with pred_moments=False."
+                    )
 
                 loss_fn = nn.GaussianNLLLoss()
                 loss = loss_fn(pred_means, y, pred_vars)
@@ -515,31 +550,42 @@ def validation_loop(
                 loss_mean = torch.sum(
                     torch.log(torch.mean((pred_means - y) ** 2, dim=0)), dim=0
                 )
-                loss_var = torch.sum(
-                    torch.log(
-                        torch.mean(((pred_means - y) ** 2 - pred_vars) ** 2, dim=0)
-                    ),
-                    dim=0,
-                )
 
-                del pred_vars
+                if pred_moments:
 
-                loss_skew = (
-                    torch.sum(
-                        torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
+                    loss_var = torch.sum(
+                        torch.log(
+                            torch.mean(((pred_means - y) ** 2 - pred_vars) ** 2, dim=0)
+                        ),
                         dim=0,
                     )
-                    if use_loss_skew
-                    else 0
-                )
-                loss_kurt = (
-                    torch.sum(
-                        torch.log(torch.mean(((pred_means - y) ** 4 - 3) ** 2, dim=0)),
-                        dim=0,
+
+                    del pred_vars
+
+                    loss_skew = (
+                        torch.sum(
+                            torch.log(torch.mean(((pred_means - y) ** 3) ** 2, dim=0)),
+                            dim=0,
+                        )
+                        if use_loss_skew
+                        else 0
                     )
-                    if use_loss_kurt
-                    else 0
-                )
+                    loss_kurt = (
+                        torch.sum(
+                            torch.log(
+                                torch.mean(((pred_means - y) ** 4 - 3) ** 2, dim=0)
+                            ),
+                            dim=0,
+                        )
+                        if use_loss_kurt
+                        else 0
+                    )
+
+                else:
+
+                    loss_var = 0
+                    loss_skew = 0
+                    loss_kurt = 0
 
                 del pred_means
 
@@ -566,6 +612,7 @@ def training(
     grad_scaler: torch.amp.GradScaler,
     epochs: int,
     patience: int,
+    pred_moments: bool,
     output: str,
     send_to_device: bool = True,
     loss_skew=False,
@@ -591,6 +638,7 @@ def training(
             model,
             optimizer,
             grad_scaler,
+            pred_moments,
             send_to_device=send_to_device,
             use_loss_skew=loss_skew,
             use_loss_kurt=loss_kurt,
@@ -599,6 +647,7 @@ def training(
         val_loss = validation_loop(
             val_dataloader,
             model,
+            pred_moments,
             send_to_device=send_to_device,
             use_loss_skew=loss_skew,
             use_loss_kurt=loss_kurt,
@@ -643,6 +692,7 @@ def eval_model(
     model: nn.Module,
     dataloader: DataLoader,
     scaler_labels: StandardScaler,
+    pred_moments: bool,
     set_name: str,
     output_dir: str,
     send_to_device: bool = True,
@@ -667,7 +717,10 @@ def eval_model(
 
             pred.append(model(X).detach().cpu().numpy())
 
-    n_pred = int(pred[0].shape[1] / 2)
+    if pred_moments:
+        n_pred = int(pred[0].shape[1] / 2)
+    else:
+        n_pred = pred[0].shape[1]
 
     target = np.vstack(target)
     pred = np.vstack(pred)
@@ -675,7 +728,8 @@ def eval_model(
     # Scale back.
     target = scaler_labels.inverse_transform(target)
     pred[:, :n_pred] = scaler_labels.inverse_transform(pred[:, :n_pred])
-    pred[:, n_pred:] = scaler_labels.scale_ * np.sqrt(np.exp(pred[:, n_pred:]))
+    if pred_moments:
+        pred[:, n_pred:] = scaler_labels.scale_ * np.sqrt(np.exp(pred[:, n_pred:]))
 
     # Save data.
     np.savetxt(f"{output_dir}/targets_{set_name}_set.dat", target)

@@ -254,6 +254,8 @@ class Inputs(BaseModel):
 
     lazy_loading: bool
 
+    pred_moments: bool = True
+
     train: TrainInputs
     probes: ProbesInputs
     tune: TuneInputs
