@@ -195,6 +195,7 @@ def objective(
             model,
             optimizer,
             grad_scaler,
+            args.pred_moments,
             send_to_device=args.lazy_loading,
             use_loss_skew=args.train.loss_skew,
             use_loss_kurt=args.train.loss_kurt,
@@ -203,6 +204,7 @@ def objective(
         val_loss = validation_loop(
             dataloader_val,
             model,
+            args.pred_moments,
             send_to_device=args.lazy_loading,
             use_loss_skew=args.train.loss_skew,
             use_loss_kurt=args.train.loss_kurt,

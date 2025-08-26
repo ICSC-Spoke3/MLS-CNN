@@ -13,7 +13,7 @@ cosmo_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/models_param
 # If equal to zero, use only the fiducial model.
 # If different from zero, use models from the sobol sequence.
 # Only used if mobs_type="xlum" for at least one of the considered probes.
-xlum_sobol_n_models = 8
+xlum_sobol_n_models = 0
 # File with the values of the X-ray illumination parameters.
 xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples_Nmodels_8samples_6sigma.npz"
 
@@ -29,9 +29,11 @@ split_seed = 1234
 verbose = true
 
 # Lazy data loading.
-# If False, read whole dataset from disk at once into memery and send everything to device (CPU/GPU).
-# If True, read data from disk and send to device by batches.
+# If false, read whole dataset from disk at once into memery and send everything to device (CPU/GPU).
+# If true, read data from disk and send to device by batches.
 lazy_loading = false
+
+pred_moments = false
 
 [train]
 # These are the parameters used to train the network.
@@ -127,17 +129,17 @@ data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_s
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_n32_norsd/"
+data_dir = "density_field_n16_norsd/"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
+mobs_min = [3.6e13, 6e13, 1e14, 1.7e14, 2.8e14, 4.6e14, 7.7e14]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
-mobs_type = "xlum"
+mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0.2]
 
-n_augment_flip = 0
+n_augment_flip = 7
 
 [probes.power_spectrum]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
@@ -145,11 +147,11 @@ n_augment_flip = 0
 # Root directory with the data. Different mass cuts and redshifts are in sub-directories.
 data_dir = "power_spectrum_n128_norsd"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
+mobs_min = [3.6e13, 6e13, 1e14, 1.7e14, 2.8e14, 4.6e14, 7.7e14]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
-mobs_type = "xlum"
+mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0.2]
 
@@ -159,11 +161,11 @@ redshift = [0.2]
 # Directory with the data relative to data_dir_root. Different redshifts are in sub-directories.
 data_dir = "number_counts"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
+mobs_min = [3.6e13, 6e13, 1e14, 1.7e14, 2.8e14, 4.6e14, 7.7e14]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
-mobs_type = "xlum"
+mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0.2]
 # If true, use cumulative mass bins. If false, use differential mass bins. WARNING: not yet fully implemented.
@@ -178,7 +180,7 @@ study_name = "mystudy"
 # Resume from previous study with same name if it exists.
 resume = true
 
-# If True, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
+# If true, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
 compile_model = false
@@ -186,9 +188,9 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 100
+trials = 400
 # Maximum number of epochs for each trial.
-n_epochs = 160
+n_epochs = 300
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
 pruner = "hyperband"
@@ -302,7 +304,7 @@ step = 5
 
 [tune.density_field_final_nside]
 
-choices = [2, 4, 8, 16]
+choices = [2, 4, 8]
 
 [tune.density_field_n_conv_per_block]
 
