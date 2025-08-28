@@ -99,9 +99,20 @@ def do_train(args: Inputs) -> None:
 
     # Init. model.
     model = models.get_model(args, dataset_train)
+
+    # Try to compile model if requested.
     if args.train.compile_model:
-        torch.set_float32_matmul_precision("high")
-        model.compile(mode=args.train.compile_mode)
+        try:
+            torch.set_float32_matmul_precision("high")
+            model.compile(mode=args.tune.compile_mode)
+        except:
+            print(
+                "Compilation of model failed. Continuing without compiling the model."
+            )
+            # To be safe reset the model.
+            model = models.get_model(args, dataset_train)
+
+    # Send model to device.
     model.to(device)
 
     # Model summary.
