@@ -12,6 +12,7 @@ activation_dict = {
     "gelu": nn.GELU,
     "celu": nn.CELU,
     "selu": nn.SELU,
+    "silu": nn.SiLU,
 }
 
 
