@@ -244,15 +244,6 @@ class BaseDataset(ABC, Dataset):
         self.mobs_bins = np.ravel(np.array([mobs_bins]))
         self.redshift = np.ravel(np.array([redshift]))
 
-        # Number of sobol sequence models for xlum.
-        self.xlum_sobol_n_models = xlum_sobol_n_models
-
-        # Use xlum sobol sequence or not.
-        if mobs_type == "xlum":
-            self.xlum_sobol = True
-        else:
-            self.xlum_sobol = False
-
         # Get models numbers.
         self.cosmo_models = get_cosmo_models_numbers(fraction, seed, sim_type=sim_type)
 
@@ -262,27 +253,35 @@ class BaseDataset(ABC, Dataset):
         )
 
         # Labels are cosmo params + xlum params.
-        if self.xlum_sobol:
+        if mobs_type == "xlum" and xlum_sobol_n_models > 0:
 
-            if xlum_sobol_n_models == 0:
-                self.labels = get_params_cosmo_xlum(
-                    cosmo_params, self.cosmo_models, 1, "fiducial", self.sim_type
-                )
+            self.xlum_sobol = True
 
-            else:
-                if xlum_params_file is None:
-                    raise ValueError("You must provide a value for `xlum_params_file`.")
+            if xlum_params_file is None:
+                raise ValueError("You must provide a value for `xlum_params_file`.")
 
-                self.labels = get_params_cosmo_xlum(
-                    cosmo_params,
-                    self.cosmo_models,
-                    self.xlum_sobol_n_models,
-                    xlum_params_file,
-                    self.sim_type,
-                )
+            self.labels = get_params_cosmo_xlum(
+                cosmo_params,
+                self.cosmo_models,
+                xlum_sobol_n_models,
+                xlum_params_file,
+                self.sim_type,
+            )
+
+        # Labels are cosmo params + fiducial xlum params.
+        elif mobs_type == "xlum" and xlum_sobol_n_models == 0:
+
+            self.xlum_sobol = False
+
+            self.labels = get_params_cosmo_xlum(
+                cosmo_params, self.cosmo_models, 1, "fiducial", self.sim_type
+            )
 
         # No xlum parameters in the labels.
         else:
+
+            self.xlum_sobol = False
+
             self.labels = cosmo_params
 
         self.labels = self.target_transform(self.labels).type(torch.float32)
@@ -503,7 +502,7 @@ class DensityFieldDataset(BaseDataset):
 
     def read_data(self, idx):
 
-        if self.xlum_sobol and self.xlum_sobol_n_models > 0:
+        if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
             xm_idx = idx % self.xlum_sobol_n_models
             xm_suffix = f"_{xm_idx}"
@@ -711,7 +710,9 @@ def get_dataset_single_probe(
 
     # Augment dataset for CNN.
     if probe == "density_field":
-        dataset_train = AugmentedDensityFieldDataset(dataset_train, args.probes.density_field.n_augment_flip)
+        dataset_train = AugmentedDensityFieldDataset(
+            dataset_train, args.probes.density_field.n_augment_flip
+        )
 
     # TODO compute by batches in case the whole dataset does not fit into the memory (RAM and/or GPU)
     # Compute mean and standard deviation of all outputs from training set.
