@@ -198,6 +198,7 @@ def objective(
             "Unsupported scheduler. Options are: 'reduce_on_plateau', 'cosine', 'cosine_warm_restarts'"
         )
 
+    # TODO: allow different settings for train and tune.
     # Set early stopping patience.
     # If early stopping is not activated, set it to a very large value.
     if args.train.early_stopping:

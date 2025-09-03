@@ -240,7 +240,8 @@ class TuneInputs(BaseModel):
 
     reduce_on_plateau_factor: HyperParamFloat
 
-    swa_lr: HyperParamFloat
+    cosine_warm_restarts_t_0: HyperParamInt
+    cosine_warm_restarts_t_mult: HyperParamInt
 
 
 class Inputs(BaseModel):
@@ -333,13 +334,20 @@ def suggest_args(
             step=args.tune.reduce_on_plateau_factor.step,
             log=args.tune.reduce_on_plateau_factor.log,
         )
-    if args.train.swa:
-        args.train.swa_lr = trial.suggest_float(
-            "swa_lr",
-            args.tune.swa_lr.low,
-            args.tune.swa_lr.high,
-            step=args.tune.swa_lr.step,
-            log=args.tune.swa_lr.log,
+    if args.train.scheduler == "cosine_warm_restarts":
+        args.train.cosine_warm_restarts_t_0 = trial.suggest_int(
+            "cosine_warm_restarts_t_0",
+            args.tune.cosine_warm_restarts_t_0.low,
+            args.tune.cosine_warm_restarts_t_0.high,
+            step=args.tune.cosine_warm_restarts_t_0.step,
+            log=args.tune.cosine_warm_restarts_t_0.log,
+        )
+        args.train.cosine_warm_restarts_t_mult = trial.suggest_int(
+            "cosine_warm_restarts_t_mult",
+            args.tune.cosine_warm_restarts_t_mult.low,
+            args.tune.cosine_warm_restarts_t_mult.high,
+            step=args.tune.cosine_warm_restarts_t_mult.step,
+            log=args.tune.cosine_warm_restarts_t_mult.log,
         )
 
     for probe in args.probes.probe_list:
