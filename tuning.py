@@ -176,28 +176,34 @@ def objective(
     )
 
     # Scheduler.
-    if args.train.cosine_warm_restarts:
+    if args.train.scheduler == "cosine_warm_restarts":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
             optimizer,
             args.train.cosine_warm_restarts_t_0,
             T_mult=args.train.cosine_warm_restarts_t_mult,
         )
-    else:
+    elif args.train.scheduler == "reduce_on_plateau":
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             "min",
             factor=args.train.reduce_on_plateau_factor,
             patience=args.train.reduce_on_plateau_patience,
         )
-
-    # Set early stopping patience.
-    if args.train.patience_early_stopping_factor != 0:
-        patience_early_stopping = int(
-            args.train.patience_early_stopping_factor
-            * args.train.reduce_on_plateau_patience
+    elif args.train.scheduler == "cosine":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, args.train.n_epochs
         )
     else:
+        raise ValueError(
+            "Unsupported scheduler. Options are: 'reduce_on_plateau', 'cosine', 'cosine_warm_restarts'"
+        )
+
+    # Set early stopping patience.
+    # If early stopping is not activated, set it to a very large value.
+    if args.train.early_stopping:
         patience_early_stopping = args.train.patience_early_stopping
+    else:
+        patience_early_stopping = 10 * args.train.n_epochs
 
     # Set gradient scaler (for AMP).
     grad_scaler = GradScaler(device=device)

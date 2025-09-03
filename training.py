@@ -6,6 +6,7 @@ from rich import print
 from sklearn.preprocessing import StandardScaler
 from torch import nn
 from torch.amp import GradScaler, autocast
+from torch.optim.swa_utils import AveragedModel, SWALR
 from torch.utils.data import DataLoader, random_split
 from torchinfo import summary
 
@@ -150,28 +151,39 @@ def do_train(args: Inputs) -> None:
     )
 
     # Scheduler.
-    if args.train.cosine_warm_restarts:
+    if args.train.scheduler == "cosine_warm_restarts":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
             optimizer,
             args.train.cosine_warm_restarts_t_0,
             T_mult=args.train.cosine_warm_restarts_t_mult,
         )
-    else:
+    elif args.train.scheduler == "reduce_on_plateau":
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             "min",
             factor=args.train.reduce_on_plateau_factor,
             patience=args.train.reduce_on_plateau_patience,
         )
-
-    # Set early stopping patience.
-    if args.train.patience_early_stopping_factor != 0:
-        patience_early_stopping = int(
-            args.train.patience_early_stopping_factor
-            * args.train.reduce_on_plateau_patience
+    elif args.train.scheduler == "cosine":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, args.train.n_epochs
         )
     else:
+        raise ValueError(
+            "Unsupported scheduler. Options are: 'reduce_on_plateau', 'cosine', 'cosine_warm_restarts'"
+        )
+
+    # Set early stopping patience.
+    # If early stopping is not activated, set it to a very large value.
+    if args.train.early_stopping:
         patience_early_stopping = args.train.patience_early_stopping
+    else:
+        patience_early_stopping = 10 * args.train.n_epochs
+
+    # Stochastic weight averaging (SWA).
+    if args.train.swa:
+        swa_model = AveragedModel(model)
+        swa_scheduler = SWALR(optimizer, swa_lr=args.train.swa_lr)
 
     # Set gradient scaler (for AMP).
     grad_scaler = GradScaler(device=device)
@@ -636,6 +648,10 @@ def training(
     loss_skew=False,
     loss_kurt=False,
     gauss_nllloss=False,
+    swa: bool = False,
+    swa_model: None | torch.optim.swa_utils.AveragedModel = None,
+    swa_scheduler: None | torch.optim.swa_utils.SWALR = None,
+    swa_start_epoch: int = 10,
     verbose: bool = True,
 ) -> tuple[list[float], list[float]]:
 
@@ -675,8 +691,17 @@ def training(
         train_history.append(train_loss)
         val_history.append(val_loss)
 
-        if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+        if swa and t > swa_start_epoch:
+
+            assert swa_model is not None
+            assert swa_scheduler is not None
+
+            swa_model.update_parameters(model)
+            swa_scheduler.step()
+
+        elif isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
             scheduler.step(val_loss)
+
         else:
             scheduler.step()
 
@@ -702,6 +727,28 @@ def training(
             print(f"Current epoch validation loss: {val_loss}")
             print(f"Best validation loss: {best_loss} (epoch {best_epoch+1})")
             print(f"-------------------------------\n")
+
+    if swa:
+
+        assert swa_model is not None
+        assert swa_scheduler is not None
+
+        # Update batch_norm statistics for the swa_model at the end.
+        torch.optim.swa_utils.update_bn(train_dataloader, swa_model)
+        # Use swa_model to make predictions on test data
+        val_loss_swa = validation_loop(
+            val_dataloader,
+            swa_model,
+            pred_moments,
+            send_to_device=send_to_device,
+            use_loss_skew=loss_skew,
+            use_loss_kurt=loss_kurt,
+            gauss_nllloss=gauss_nllloss,
+        )
+        if verbose:
+            print(f"Final validation loss for SWA model: {val_loss_swa}.")
+
+        checkpoint(model, f"{output}/swa_model.pth")
 
     if verbose:
         print("Done!")

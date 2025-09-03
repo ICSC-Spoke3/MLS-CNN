@@ -68,15 +68,21 @@ class TrainInputs(BaseModel):
     gauss_nllloss: bool
 
     n_epochs: int
+
+    early_stopping: bool
     patience_early_stopping: int
-    patience_early_stopping_factor: float
+
+    scheduler: str
 
     reduce_on_plateau_patience: int
     reduce_on_plateau_factor: float
 
-    cosine_warm_restarts: bool = False
     cosine_warm_restarts_t_0: int = 20
     cosine_warm_restarts_t_mult: int = 1
+
+    swa: bool
+    swa_start_epoch: int
+    swa_lr: float
 
     batch_size: int
 
@@ -234,6 +240,8 @@ class TuneInputs(BaseModel):
 
     reduce_on_plateau_factor: HyperParamFloat
 
+    swa_lr: HyperParamFloat
+
 
 class Inputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -317,13 +325,22 @@ def suggest_args(
         step=args.tune.dropout.step,
         log=args.tune.dropout.log,
     )
-    args.train.reduce_on_plateau_factor = trial.suggest_float(
-        "reduce_on_plateau_factor",
-        args.tune.reduce_on_plateau_factor.low,
-        args.tune.reduce_on_plateau_factor.high,
-        step=args.tune.reduce_on_plateau_factor.step,
-        log=args.tune.reduce_on_plateau_factor.log,
-    )
+    if args.train.scheduler == "reduce_on_plateau":
+        args.train.reduce_on_plateau_factor = trial.suggest_float(
+            "reduce_on_plateau_factor",
+            args.tune.reduce_on_plateau_factor.low,
+            args.tune.reduce_on_plateau_factor.high,
+            step=args.tune.reduce_on_plateau_factor.step,
+            log=args.tune.reduce_on_plateau_factor.log,
+        )
+    if args.train.swa:
+        args.train.swa_lr = trial.suggest_float(
+            "swa_lr",
+            args.tune.swa_lr.low,
+            args.tune.swa_lr.high,
+            step=args.tune.swa_lr.step,
+            log=args.tune.swa_lr.log,
+        )
 
     for probe in args.probes.probe_list:
 
