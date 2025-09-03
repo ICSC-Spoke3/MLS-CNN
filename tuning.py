@@ -176,12 +176,19 @@ def objective(
     )
 
     # Scheduler.
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        "min",
-        factor=args.train.reduce_on_plateau_factor,
-        patience=args.train.reduce_on_plateau_patience,
-    )
+    if args.train.cosine_warm_restarts:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer,
+            args.train.cosine_warm_restarts_t_0,
+            T_mult=args.train.cosine_warm_restarts_t_mult,
+        )
+    else:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            "min",
+            factor=args.train.reduce_on_plateau_factor,
+            patience=args.train.reduce_on_plateau_patience,
+        )
 
     # Set early stopping patience.
     if args.train.patience_early_stopping_factor != 0:
@@ -222,7 +229,10 @@ def objective(
             gauss_nllloss=args.train.gauss_nllloss,
         )
 
-        scheduler.step(val_loss)
+        if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+            scheduler.step(val_loss)
+        else:
+            scheduler.step()
 
         # Report current loss.
         trial.report(val_loss, epoch)

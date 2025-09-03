@@ -150,12 +150,19 @@ def do_train(args: Inputs) -> None:
     )
 
     # Scheduler.
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        "min",
-        factor=args.train.reduce_on_plateau_factor,
-        patience=args.train.reduce_on_plateau_patience,
-    )
+    if args.train.cosine_warm_restarts:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer,
+            args.train.cosine_warm_restarts_t_0,
+            T_mult=args.train.cosine_warm_restarts_t_mult,
+        )
+    else:
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            "min",
+            factor=args.train.reduce_on_plateau_factor,
+            patience=args.train.reduce_on_plateau_patience,
+        )
 
     # Set early stopping patience.
     if args.train.patience_early_stopping_factor != 0:
@@ -619,7 +626,7 @@ def training(
     val_dataloader: DataLoader,
     model: nn.Module,
     optimizer: torch.optim.Optimizer,
-    scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau,
+    scheduler: torch.optim.lr_scheduler.LRScheduler,
     grad_scaler: torch.amp.GradScaler,
     epochs: int,
     patience: int,
@@ -668,7 +675,10 @@ def training(
         train_history.append(train_loss)
         val_history.append(val_loss)
 
-        scheduler.step(val_loss)
+        if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+            scheduler.step(val_loss)
+        else:
+            scheduler.step()
 
         if val_loss < best_loss:
             best_loss = val_loss

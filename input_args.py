@@ -74,6 +74,10 @@ class TrainInputs(BaseModel):
     reduce_on_plateau_patience: int
     reduce_on_plateau_factor: float
 
+    cosine_warm_restarts: bool = False
+    cosine_warm_restarts_t_0: int = 20
+    cosine_warm_restarts_t_mult: int = 1
+
     batch_size: int
 
     learning_rate: float
