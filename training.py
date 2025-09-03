@@ -204,6 +204,10 @@ def do_train(args: Inputs) -> None:
         loss_skew=args.train.loss_skew,
         loss_kurt=args.train.loss_kurt,
         gauss_nllloss=args.train.gauss_nllloss,
+        swa=args.train.swa,
+        swa_model=swa_model if args.train.swa else None,
+        swa_scheduler=swa_scheduler if args.train.swa else None,
+        swa_start_epoch=args.train.swa_start_epoch,
     )
 
     if args.verbose:
