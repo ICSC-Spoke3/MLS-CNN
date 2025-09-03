@@ -33,8 +33,6 @@ verbose = true
 # If true, read data from disk and send to device by batches.
 lazy_loading = false
 
-pred_moments = false
-
 [train]
 # These are the parameters used to train the network.
 
@@ -46,13 +44,13 @@ compile_model = false
 compile_mode = "default"
 
 # Maximum number of epochs.
-n_epochs = 1000
+n_epochs = 2000
 # Patience for early stopping.
-patience_early_stopping = 10
+patience_early_stopping = 5000
 # Early stopping patience can also be defined as a constant factor with respect to reduce_on_plateau_patience.
 # i.e. patience = int(patience_early_stopping_factor x reduce_on_plateau_patience)
 # If different from zero, this definition is used.
-patience_early_stopping_factor = 20
+patience_early_stopping_factor = 0
 
 # Settings for the loss function.
 
@@ -63,7 +61,7 @@ loss_skew = false
 # Ignored if gauss_nllloss=true.
 loss_kurt = false
 # Use Gaussian negative log likelihood loss from pytorch (GaussianNLLLoss).
-gauss_nllloss = false
+gauss_nllloss = true
 
 # Use training parameters from previous tuning run.
 # If true, the values of the remaining tranining parameters of this section will not be used.
@@ -74,7 +72,7 @@ tune_dir = "output_dir"
 study_name = "mystudy"
 
 # Patience for ReduceOnPlateau learning rate scheduler.
-reduce_on_plateau_patience = 20
+reduce_on_plateau_patience = 30
 reduce_on_plateau_factor = 0.1
 
 # Batch size for the training dataset.
@@ -129,7 +127,7 @@ data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_s
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_n32_norsd/"
+data_dir = "density_field_n16_norsd/"
 # List of minimum mass/luminosity thresholds.
 mobs_min = [3.6e13, 6e13, 1e14, 1.7e14, 2.8e14, 4.6e14, 7.7e14]
 # Use mass or luminosity cuts.
@@ -139,7 +137,7 @@ mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0.2]
 
-n_augment_flip = 0
+n_augment_flip = 7
 
 [probes.power_spectrum]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
@@ -188,9 +186,9 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 100
+trials = 500
 # Maximum number of epochs for each trial.
-n_epochs = 300
+n_epochs = 500
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
 pruner = "hyperband"
@@ -201,7 +199,7 @@ median_n_warmup_steps = 20
 median_n_min_trials = 1
 
 # Parameters for hyperband pruner (see optuna documentation).
-hyperband_min_resource = 10
+hyperband_min_resource = 30
 hyperband_reduction_factor = 2
 
 [tune.learning_rate]
@@ -234,7 +232,7 @@ log = true
 
 [tune.batch_size]
 
-choices = [8, 16, 32, 64, 128, 256]
+choices = [8, 16, 32, 64, 128, 256, 512]
 
 [tune.regressor_fc_layers]
 
@@ -252,7 +250,7 @@ log = true
 
 [tune.regressor_activation]
 
-choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu"]
+choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu", "silu"]
 
 [tune.regressor_batch_norm]
 
@@ -272,7 +270,7 @@ step = 100
 
 [tune.ps_activation]
 
-choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu"]
+choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu", "silu"]
 
 [tune.ps_batch_norm]
 
@@ -292,7 +290,7 @@ step = 100
 
 [tune.nc_activation]
 
-choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu"]
+choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu", "silu"]
 
 [tune.nc_batch_norm]
 
@@ -301,24 +299,24 @@ choices = [true, false]
 [tune.density_field_n_channels_first]
 
 low = 1
-high = 300
+high = 500
 step = 1
 log = true
 
 [tune.density_field_final_nside]
 
-choices = [2, 4, 8, 16]
+choices = [2, 4, 8]
 
 [tune.density_field_n_conv_per_block]
 
 low = 1
-high = 3
+high = 5
 step = 1
 log = true
 
 [tune.density_field_activation]
 
-choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu"]
+choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu", "silu"]
 
 [tune.density_field_batch_norm]
 
