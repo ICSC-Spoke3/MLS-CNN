@@ -207,7 +207,7 @@ def do_train(args: Inputs) -> None:
         swa=args.train.swa,
         swa_model=swa_model if args.train.swa else None,
         swa_scheduler=swa_scheduler if args.train.swa else None,
-        swa_n_epochs=args.train.swa_n_epoch,
+        swa_n_epochs=args.train.swa_n_epochs,
     )
 
     if args.verbose:
