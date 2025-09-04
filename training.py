@@ -969,7 +969,7 @@ def training(
             print(f"Final validation loss for SWA model: {val_loss_swa}.")
             print(f"-------------------------------\n")
 
-        checkpoint(model, f"{output}/swa_model.pth")
+        checkpoint(swa_model, f"{output}/swa_model.pth")
 
     if verbose:
         print("Done!")
