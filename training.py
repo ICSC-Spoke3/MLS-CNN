@@ -71,6 +71,10 @@ def do_train(args: Inputs) -> None:
             print("Ignoring data augmentation in multiprobe setup.")
     print(f"-------------------------------\n")
 
+    # Set torch seed to try getting reproducible results.
+    # Set it at the same stage as in the tuning module.
+    torch.manual_seed(0)
+
     # Init. dataloaders.
     # TODO: use num_workers > 0 when lazy_loading=True -> needs job with multiple cpu processes.
     dataloader_train = DataLoader(
@@ -84,7 +88,7 @@ def do_train(args: Inputs) -> None:
     dataloader_val = DataLoader(
         dataset_val,
         batch_size=args.train.batch_size,
-        drop_last=False,
+        drop_last=True,
         shuffle=False,
         num_workers=0,
         pin_memory=args.lazy_loading,
@@ -185,6 +189,15 @@ def do_train(args: Inputs) -> None:
         swa_model = AveragedModel(model)
         swa_scheduler = SWALR(optimizer, swa_lr=args.train.swa_lr)
 
+    # Exponential moving average (EMA).
+    if args.train.ema:
+        ema_model = AveragedModel(
+            model,
+            multi_avg_fn=torch.optim.swa_utils.get_ema_multi_avg_fn(
+                args.train.ema_decay_rate
+            ),
+        )
+
     # Set gradient scaler (for AMP).
     grad_scaler = GradScaler(device=device)
 
@@ -208,6 +221,7 @@ def do_train(args: Inputs) -> None:
         swa_model=swa_model if args.train.swa else None,
         swa_scheduler=swa_scheduler if args.train.swa else None,
         swa_n_epochs=args.train.swa_n_epochs,
+        ema_model=ema_model if args.train.ema else None,
     )
 
     if args.verbose:
@@ -843,6 +857,7 @@ def training(
     swa_model: None | torch.optim.swa_utils.AveragedModel = None,
     swa_scheduler: None | torch.optim.swa_utils.SWALR = None,
     swa_n_epochs: int = 10,
+    ema_model: None | torch.optim.swa_utils.AveragedModel = None,
     verbose: bool = True,
 ) -> tuple[list[float], list[float]]:
 

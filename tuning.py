@@ -127,6 +127,10 @@ def objective(
 
     args = suggest_args(trial, args)
 
+    # Set torch seed to try getting reproducible results.
+    # Set it at the same stage as in the training module.
+    torch.manual_seed(0)
+
     # Init. dataloaders.
     # TODO: use num_workers > 0 when lazy_loading=True -> needs job with multiple cpu processes.
     dataloader_train = DataLoader(
@@ -141,7 +145,7 @@ def objective(
         dataset_val,
         batch_size=args.train.batch_size,
         drop_last=False,
-        shuffle=False,
+        shuffle=True,
         num_workers=0,
         pin_memory=args.lazy_loading,
     )

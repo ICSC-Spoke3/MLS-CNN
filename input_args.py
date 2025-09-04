@@ -84,6 +84,9 @@ class TrainInputs(BaseModel):
     swa_n_epochs: int
     swa_lr: float
 
+    ema: bool
+    ema_decay_rate: float = 0.999
+
     batch_size: int
 
     learning_rate: float
