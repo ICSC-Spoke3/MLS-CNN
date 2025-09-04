@@ -178,7 +178,7 @@ def do_train(args: Inputs) -> None:
     if args.train.early_stopping:
         patience_early_stopping = args.train.patience_early_stopping
     else:
-        patience_early_stopping = 10 * args.train.n_epochs
+        patience_early_stopping = 100 * args.train.n_epochs
 
     # Stochastic weight averaging (SWA).
     if args.train.swa:
@@ -207,7 +207,7 @@ def do_train(args: Inputs) -> None:
         swa=args.train.swa,
         swa_model=swa_model if args.train.swa else None,
         swa_scheduler=swa_scheduler if args.train.swa else None,
-        swa_start_epoch=args.train.swa_start_epoch,
+        swa_n_epochs=args.train.swa_n_epoch,
     )
 
     if args.verbose:
@@ -228,6 +228,26 @@ def do_train(args: Inputs) -> None:
         np.vstack([train_history, val_history]).transpose(),
         header="Train Val",
     )
+
+    # Load best model.
+    model.load_state_dict(
+        torch.load(
+            f"{args.output_dir}/best_model.pth",
+            weights_only=True,
+            map_location=torch.device(device),
+        )
+    )
+
+    # Load SWA model.
+    if args.train.swa:
+
+        swa_model.load_state_dict(
+            torch.load(
+                f"{args.output_dir}/swa_model.pth",
+                weights_only=True,
+                map_location=torch.device(device),
+            )
+        )
 
     # Evaluate model.
     target_train, pred_train = eval_model(
@@ -822,11 +842,11 @@ def training(
     swa: bool = False,
     swa_model: None | torch.optim.swa_utils.AveragedModel = None,
     swa_scheduler: None | torch.optim.swa_utils.SWALR = None,
-    swa_start_epoch: int = 10,
+    swa_n_epochs: int = 10,
     verbose: bool = True,
 ) -> tuple[list[float], list[float]]:
 
-    best_loss = 1e5
+    best_loss = 1e10
     best_epoch = -1
     val_history = []
     train_history = []
@@ -862,17 +882,8 @@ def training(
         train_history.append(train_loss)
         val_history.append(val_loss)
 
-        if swa and t > swa_start_epoch:
-
-            assert swa_model is not None
-            assert swa_scheduler is not None
-
-            swa_model.update_parameters(model)
-            swa_scheduler.step()
-
-        elif isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+        if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
             scheduler.step(val_loss)
-
         else:
             scheduler.step()
 
@@ -904,6 +915,44 @@ def training(
         assert swa_model is not None
         assert swa_scheduler is not None
 
+        print("---------- Stochastic Weight Averaging ----------\n")
+
+        for t in range(swa_n_epochs):
+
+            if verbose:
+                print(f"Epoch {t+1}\n-------------------------------")
+
+                print(f"LR: {swa_scheduler.get_last_lr()}")
+
+            train_loss = train_loop(
+                train_dataloader,
+                model,
+                optimizer,
+                grad_scaler,
+                pred_moments,
+                send_to_device=send_to_device,
+                use_loss_skew=loss_skew,
+                use_loss_kurt=loss_kurt,
+                gauss_nllloss=gauss_nllloss,
+            )
+            val_loss = validation_loop(
+                val_dataloader,
+                model,
+                pred_moments,
+                send_to_device=send_to_device,
+                use_loss_skew=loss_skew,
+                use_loss_kurt=loss_kurt,
+                gauss_nllloss=gauss_nllloss,
+            )
+
+            if verbose:
+                print(f"Current epoch training loss: {train_loss}")
+                print(f"Current epoch validation loss: {val_loss}")
+                print(f"-------------------------------\n")
+
+            swa_model.update_parameters(model)
+            swa_scheduler.step()
+
         # Update batch_norm statistics for the swa_model at the end.
         torch.optim.swa_utils.update_bn(train_dataloader, swa_model)
         # Use swa_model to make predictions on test data
@@ -918,6 +967,7 @@ def training(
         )
         if verbose:
             print(f"Final validation loss for SWA model: {val_loss_swa}.")
+            print(f"-------------------------------\n")
 
         checkpoint(model, f"{output}/swa_model.pth")
 

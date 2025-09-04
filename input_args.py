@@ -81,7 +81,7 @@ class TrainInputs(BaseModel):
     cosine_warm_restarts_t_mult: int = 1
 
     swa: bool
-    swa_start_epoch: int
+    swa_n_epoch: int
     swa_lr: float
 
     batch_size: int
