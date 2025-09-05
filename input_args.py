@@ -323,6 +323,8 @@ def suggest_args(
         args.train.batch_size = trial.suggest_categorical(
             "batch_size", args.tune.batch_size.choices
         )
+    else:
+        args.train.batch_size = args.tune.batch_size.choices[0]
     args.train.dropout = trial.suggest_float(
         "dropout",
         args.tune.dropout.low,
@@ -370,6 +372,10 @@ def suggest_args(
                     "density_field_final_nside",
                     args.tune.density_field_final_nside.choices,
                 )
+            else:
+                args.train.density_field_final_nside = (
+                    args.tune.density_field_final_nside.choices[0]
+                )
             args.train.density_field_n_conv_per_block = trial.suggest_int(
                 "density_field_n_conv_per_block",
                 args.tune.density_field_n_conv_per_block.low,
@@ -382,14 +388,26 @@ def suggest_args(
                     "density_field_activation",
                     args.tune.density_field_activation.choices,
                 )
+            else:
+                args.train.density_field_activation = (
+                    args.tune.density_field_activation.choices[0]
+                )
             if len(args.tune.density_field_batch_norm.choices) > 1:
                 args.train.density_field_batch_norm = trial.suggest_categorical(
                     "density_field_batch_norm",
                     args.tune.density_field_batch_norm.choices,
                 )
+            else:
+                args.train.density_field_batch_norm = (
+                    args.tune.density_field_batch_norm.choices[0]
+                )
             if len(args.tune.density_field_pooling.choices) > 1:
                 args.train.density_field_pooling = trial.suggest_categorical(
                     "density_field_pooling", args.tune.density_field_pooling.choices
+                )
+            else:
+                args.train.density_field_pooling = (
+                    args.tune.density_field_pooling.choices[0]
                 )
 
         elif probe == "power_spectrum":
@@ -412,10 +430,14 @@ def suggest_args(
                 args.train.ps_activation = trial.suggest_categorical(
                     "ps_activation", args.tune.ps_activation.choices
                 )
+            else:
+                args.train.ps_activation = args.tune.ps_activation.choices[0]
             if len(args.tune.ps_batch_norm.choices) > 1:
                 args.train.ps_batch_norm = trial.suggest_categorical(
                     "ps_batch_norm", args.tune.ps_batch_norm.choices
                 )
+            else:
+                args.train.ps_batch_norm = args.tune.ps_batch_norm.choices[0]
 
         elif probe == "number_counts":
 
@@ -437,10 +459,14 @@ def suggest_args(
                 args.train.nc_activation = trial.suggest_categorical(
                     "nc_activation", args.tune.nc_activation.choices
                 )
+            else:
+                args.train.nc_activation = args.tune.nc_activation.choices[0]
             if len(args.tune.nc_batch_norm.choices) > 1:
                 args.train.nc_batch_norm = trial.suggest_categorical(
                     "nc_batch_norm", args.tune.nc_batch_norm.choices
                 )
+            else:
+                args.train.nc_batch_norm = args.tune.nc_batch_norm.choices[0]
 
         else:
             raise ValueError(f"Unsupported probe: {probe}.")
@@ -463,9 +489,13 @@ def suggest_args(
         args.train.regressor_activation = trial.suggest_categorical(
             "regressor_activation", args.tune.regressor_activation.choices
         )
+    else:
+        args.train.regressor_activation = args.tune.regressor_activation.choices[0]
     if len(args.tune.regressor_batch_norm.choices) > 1:
         args.train.regressor_batch_norm = trial.suggest_categorical(
             "regressor_batch_norm", args.tune.regressor_batch_norm.choices
         )
+    else:
+        args.train.regressor_batch_norm = args.tune.regressor_batch_norm.choices[0]
 
     return args
