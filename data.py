@@ -454,7 +454,7 @@ class PowerSpectrumDataset(BaseDataset):
 
                 for m in self.mobs_bins:
 
-                    data.append(np.log10(1 + data_read[f"{self.mobs_type}_{m:.1e}"]))
+                    data.append(np.log10(1 + data_read[f"{self.mobs_type}_{m:.2e}"]))
 
         data = np.ravel(data)
 
@@ -529,7 +529,7 @@ class DensityFieldDataset(BaseDataset):
 
                 for m in self.mobs_bins:
 
-                    data_tmp = data_read[f"{self.mobs_type}_{m:.1e}"]
+                    data_tmp = data_read[f"{self.mobs_type}_{m:.2e}"]
 
                     data_tmp = np.log10(1 + data_tmp)
 
