@@ -88,7 +88,7 @@ def do_train(args: Inputs) -> None:
     dataloader_val = DataLoader(
         dataset_val,
         batch_size=args.train.batch_size,
-        drop_last=True,
+        drop_last=False,
         shuffle=False,
         num_workers=0,
         pin_memory=args.lazy_loading,

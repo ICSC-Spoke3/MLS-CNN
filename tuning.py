@@ -145,7 +145,7 @@ def objective(
         dataset_val,
         batch_size=args.train.batch_size,
         drop_last=False,
-        shuffle=True,
+        shuffle=False,
         num_workers=0,
         pin_memory=args.lazy_loading,
     )
