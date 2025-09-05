@@ -6,7 +6,7 @@ from rich import print
 from sklearn.preprocessing import StandardScaler
 from torch import nn
 from torch.amp import GradScaler, autocast
-from torch.optim.swa_utils import AveragedModel, SWALR
+from torch.optim.swa_utils import SWALR, AveragedModel
 from torch.utils.data import DataLoader, random_split
 from torchinfo import summary
 

@@ -9,7 +9,11 @@ from torch.amp import GradScaler
 from torch.utils.data import DataLoader, Dataset, random_split
 
 import models as models
-from data import get_dataset_single_probe, get_datasets_multiprobe
+from data import (
+    AugmentedDensityFieldDataset,
+    get_dataset_single_probe,
+    get_datasets_multiprobe,
+)
 from input_args import Inputs, suggest_args
 from training import train_loop, validation_loop
 
@@ -81,6 +85,13 @@ def do_tune(args: Inputs) -> None:
         [fraction_train, args.fraction_validation, args.fraction_test],
         generator=generator,
     )
+    if "density_field" in args.probes.probe_list:
+        if len(args.probes.probe_list) == 1:
+            dataset_train = AugmentedDensityFieldDataset(
+                dataset_train, args.probes.density_field.n_augment_flip
+            )
+        else:
+            print("Ignoring data augmentation in multiprobe setup.")
     print(f"-------------------------------\n")
 
     objective_func = get_objective_func(args, dataset_train, dataset_val)
@@ -166,7 +177,7 @@ def objective(
             model = models.get_model(args, dataset_train)
 
     # Send model to device.
-    model.to(device, non_blocking=True)
+    model.to(device)
 
     print(f"Trial {trial.number}:", trial.params)
 
@@ -208,12 +219,12 @@ def objective(
     if args.train.early_stopping:
         patience_early_stopping = args.train.patience_early_stopping
     else:
-        patience_early_stopping = 10 * args.train.n_epochs
+        patience_early_stopping = 100 * args.train.n_epochs
 
     # Set gradient scaler (for AMP).
     grad_scaler = GradScaler(device=device)
 
-    best_loss = 1e5
+    best_loss = 1e10
     best_epoch = -1
 
     # Loop over epochs.
