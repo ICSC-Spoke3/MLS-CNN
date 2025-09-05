@@ -221,6 +221,7 @@ def do_train(args: Inputs) -> None:
         swa_model=swa_model if args.train.swa else None,
         swa_scheduler=swa_scheduler if args.train.swa else None,
         swa_n_epochs=args.train.swa_n_epochs,
+        ema=args.train.ema,
         ema_model=ema_model if args.train.ema else None,
     )
 
@@ -258,6 +259,17 @@ def do_train(args: Inputs) -> None:
         swa_model.load_state_dict(
             torch.load(
                 f"{args.output_dir}/swa_model.pth",
+                weights_only=True,
+                map_location=torch.device(device),
+            )
+        )
+
+    # Load EMA model.
+    if args.train.ema:
+
+        ema_model.load_state_dict(
+            torch.load(
+                f"{args.output_dir}/ema_model.pth",
                 weights_only=True,
                 map_location=torch.device(device),
             )
@@ -595,6 +607,173 @@ def do_train(args: Inputs) -> None:
                 plot_std=False,
             )
 
+    # SAME FOR EMA.
+    if args.train.ema:
+        # Evaluate model.
+        target_train, pred_train = eval_model(
+            ema_model,
+            dataloader_train,
+            scaler_labels,
+            args.pred_moments,
+            "training",
+            args.output_dir,
+            send_to_device=args.lazy_loading,
+        )
+        target_val, pred_val = eval_model(
+            ema_model,
+            dataloader_val,
+            scaler_labels,
+            args.pred_moments,
+            "validation",
+            args.output_dir,
+            send_to_device=args.lazy_loading,
+        )
+        target_test, pred_test = eval_model(
+            ema_model,
+            dataloader_test,
+            scaler_labels,
+            args.pred_moments,
+            "test",
+            args.output_dir,
+            send_to_device=args.lazy_loading,
+        )
+
+        # Predictions vs targets.
+        ## Parameter names and labels.
+        param_labels_dict = {
+            "Omega_m": r"$\Omega_{\rm m}$",
+            "sigma8": r"$\sigma_8$",
+            "S8": r"$S_8$",
+            "h": r"$h$",
+            "n_s": r"$n_s$",
+            "Omega_b": r"$\Omega_{\rm b}$",
+            "w0": r"$w_0$",
+            "wa": r"$w_a$",
+            "xlf_a": r"$a_\mathrm{BA}$",
+            "xlf_b": r"$b_\mathrm{BA}$",
+            "xlf_c": r"$c_\mathrm{BA}$",
+            "xlf_sigma": r"$\sigma_\mathrm{BA}$",
+        }
+        param_names = args.cosmo_params_names
+        if args.xlum_sobol_n_models > 0:
+            param_names += ["xlf_a", "xlf_b", "xlf_c", "xlf_sigma"]
+
+        plot.plot_pred_vs_target(
+            target_train,
+            pred_train,
+            "training_ema",
+            param_names,
+            param_labels_dict,
+            args.output_dir,
+            plot_std=args.pred_moments,
+        )
+        plot.plot_pred_vs_target(
+            target_val,
+            pred_val,
+            "validation_ema",
+            param_names,
+            param_labels_dict,
+            args.output_dir,
+            plot_std=args.pred_moments,
+        )
+        plot.plot_pred_vs_target(
+            target_test,
+            pred_test,
+            "test_ema",
+            param_names,
+            param_labels_dict,
+            args.output_dir,
+            plot_std=args.pred_moments,
+        )
+
+        # Same for S8 if not in base parameters.
+        if "S8" not in param_names:
+            target_train_S8 = target_train[:, 1] * np.sqrt(target_train[:, 0] / 0.3)
+            pred_train_S8 = pred_train[:, 1] * np.sqrt(pred_train[:, 0] / 0.3)
+            target_train_S8 = target_train_S8.reshape(-1, 1)
+            pred_train_S8 = pred_train_S8.reshape(-1, 1)
+            plot.plot_pred_vs_target(
+                target_train_S8,
+                pred_train_S8,
+                "training_ema",
+                ["S8"],
+                {"S8": r"$S_8$"},
+                args.output_dir,
+                plot_std=False,
+            )
+
+            target_val_S8 = target_val[:, 1] * np.sqrt(target_val[:, 0] / 0.3)
+            pred_val_S8 = pred_val[:, 1] * np.sqrt(pred_val[:, 0] / 0.3)
+            target_val_S8 = target_val_S8.reshape(-1, 1)
+            pred_val_S8 = pred_val_S8.reshape(-1, 1)
+            plot.plot_pred_vs_target(
+                target_val_S8,
+                pred_val_S8,
+                "validation_ema",
+                ["S8"],
+                {"S8": r"$S_8$"},
+                args.output_dir,
+                plot_std=False,
+            )
+
+            target_test_S8 = target_test[:, 1] * np.sqrt(target_test[:, 0] / 0.3)
+            pred_test_S8 = pred_test[:, 1] * np.sqrt(pred_test[:, 0] / 0.3)
+            target_test_S8 = target_test_S8.reshape(-1, 1)
+            pred_test_S8 = pred_test_S8.reshape(-1, 1)
+            plot.plot_pred_vs_target(
+                target_test_S8,
+                pred_test_S8,
+                "test_ema",
+                ["S8"],
+                {"S8": r"$S_8$"},
+                args.output_dir,
+                plot_std=False,
+            )
+
+        # Same for sigma8 if not in base parameters.
+        if "sigma8" not in param_names:
+            target_train_sigma8 = target_train[:, 1] / np.sqrt(target_train[:, 0] / 0.3)
+            pred_train_sigma8 = pred_train[:, 1] / np.sqrt(pred_train[:, 0] / 0.3)
+            target_train_sigma8 = target_train_sigma8.reshape(-1, 1)
+            pred_train_sigma8 = pred_train_sigma8.reshape(-1, 1)
+            plot.plot_pred_vs_target(
+                target_train_sigma8,
+                pred_train_sigma8,
+                "training_ema",
+                ["sigma8"],
+                {"sigma8": r"$\sigma_8$"},
+                args.output_dir,
+                plot_std=False,
+            )
+
+            target_val_sigma8 = target_val[:, 1] / np.sqrt(target_val[:, 0] / 0.3)
+            pred_val_sigma8 = pred_val[:, 1] / np.sqrt(pred_val[:, 0] / 0.3)
+            target_val_sigma8 = target_val_sigma8.reshape(-1, 1)
+            pred_val_sigma8 = pred_val_sigma8.reshape(-1, 1)
+            plot.plot_pred_vs_target(
+                target_val_sigma8,
+                pred_val_sigma8,
+                "validation_ema",
+                ["sigma8"],
+                {"sigma8": r"$\sigma_8$"},
+                args.output_dir,
+                plot_std=False,
+            )
+
+            target_test_sigma8 = target_test[:, 1] / np.sqrt(target_test[:, 0] / 0.3)
+            pred_test_sigma8 = pred_test[:, 1] / np.sqrt(pred_test[:, 0] / 0.3)
+            target_test_sigma8 = target_test_sigma8.reshape(-1, 1)
+            pred_test_sigma8 = pred_test_sigma8.reshape(-1, 1)
+            plot.plot_pred_vs_target(
+                target_test_sigma8,
+                pred_test_sigma8,
+                "test_ema",
+                ["sigma8"],
+                {"sigma8": r"$\sigma_8$"},
+                args.output_dir,
+                plot_std=False,
+            )
+
     if args.verbose:
         print("...done!")
 
@@ -857,6 +1036,7 @@ def training(
     swa_model: None | torch.optim.swa_utils.AveragedModel = None,
     swa_scheduler: None | torch.optim.swa_utils.SWALR = None,
     swa_n_epochs: int = 10,
+    ema: bool = False,
     ema_model: None | torch.optim.swa_utils.AveragedModel = None,
     verbose: bool = True,
 ) -> tuple[list[float], list[float]]:
@@ -897,6 +1077,10 @@ def training(
         train_history.append(train_loss)
         val_history.append(val_loss)
 
+        if ema:
+            assert ema_model is not None
+            ema_model.update_parameters(model)
+
         if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
             scheduler.step(val_loss)
         else:
@@ -924,6 +1108,29 @@ def training(
             print(f"Current epoch validation loss: {val_loss}")
             print(f"Best validation loss: {best_loss} (epoch {best_epoch+1})")
             print(f"-------------------------------\n")
+
+    if ema:
+
+        assert ema_model is not None
+
+        # Update batch_norm statistics for the ema_model at the end.
+        torch.optim.swa_utils.update_bn(train_dataloader, ema_model)
+
+        # Use ema_model to make predictions on val data.
+        val_loss_ema = validation_loop(
+            val_dataloader,
+            ema_model,
+            pred_moments,
+            send_to_device=send_to_device,
+            use_loss_skew=loss_skew,
+            use_loss_kurt=loss_kurt,
+            gauss_nllloss=gauss_nllloss,
+        )
+        if verbose:
+            print(f"Final validation loss for EMA model: {val_loss_ema}.")
+            print(f"-------------------------------\n")
+
+        checkpoint(ema_model, f"{output}/ema_model.pth")
 
     if swa:
 
@@ -970,7 +1177,7 @@ def training(
 
         # Update batch_norm statistics for the swa_model at the end.
         torch.optim.swa_utils.update_bn(train_dataloader, swa_model)
-        # Use swa_model to make predictions on test data
+        # Use swa_model to make predictions on val data.
         val_loss_swa = validation_loop(
             val_dataloader,
             swa_model,
