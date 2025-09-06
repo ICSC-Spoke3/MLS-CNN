@@ -128,6 +128,8 @@ class PowerSpectrumInputs(BaseModel):
     mobs_type: Literal["mass", "xlum"]
     redshift: list[float]
 
+    kmax: float | None = None
+
 
 class NumberCountsInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")

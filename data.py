@@ -401,6 +401,7 @@ class PowerSpectrumDataset(BaseDataset):
         data_dir: str,
         mobs_bins: npt.ArrayLike,
         redshift: npt.ArrayLike,
+        kmax: float | None = None,
         mobs_type: str = "mass",
         xlum_sobol_n_models=0,
         xlum_params_file: str | None = None,
@@ -429,6 +430,8 @@ class PowerSpectrumDataset(BaseDataset):
             sim_type=sim_type,
         )
 
+        self.kmax = kmax
+
     def read_data(self, idx):
 
         if self.xlum_sobol:
@@ -452,9 +455,19 @@ class PowerSpectrumDataset(BaseDataset):
 
             with np.load(data_path) as data_read:
 
+                if self.kmax is not None:
+                    kcut = data_read["k"] <= self.kmax
+
                 for m in self.mobs_bins:
 
-                    data.append(np.log10(1 + data_read[f"{self.mobs_type}_{m:.2e}"]))
+                    if self.kmax is not None:
+                        data.append(
+                            np.log10(1 + data_read[f"{self.mobs_type}_{m:.2e}"][kcut])
+                        )
+                    else:
+                        data.append(
+                            np.log10(1 + data_read[f"{self.mobs_type}_{m:.2e}"])
+                        )
 
         data = np.ravel(data)
 
@@ -653,6 +666,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             data_dir,
             args.probes.power_spectrum.mobs_min,
             args.probes.power_spectrum.redshift,
+            kmax=args.probes.power_spectrum.kmax,
             mobs_type=args.probes.power_spectrum.mobs_type,
             xlum_sobol_n_models=args.xlum_sobol_n_models,
             xlum_params_file=args.xlum_params_file,
