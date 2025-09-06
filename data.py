@@ -413,6 +413,8 @@ class PowerSpectrumDataset(BaseDataset):
         sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
 
+        self.kmax = kmax
+
         super(PowerSpectrumDataset, self).__init__(
             cosmo_params_file,
             cosmo_params_names,
@@ -430,7 +432,6 @@ class PowerSpectrumDataset(BaseDataset):
             sim_type=sim_type,
         )
 
-        self.kmax = kmax
 
     def read_data(self, idx):
 
