@@ -457,18 +457,15 @@ class PowerSpectrumDataset(BaseDataset):
             with np.load(data_path) as data_read:
 
                 if self.kmax is not None:
-                    kcut = data_read["k"] <= self.kmax
+                    kcut = (data_read["k"] <= self.kmax) & (data_read["k"] >= 0.02)
+                else:
+                    kcut = (data_read["k"] >= 0.02)
 
                 for m in self.mobs_bins:
 
-                    if self.kmax is not None:
-                        data.append(
-                            np.log10(1 + data_read[f"{self.mobs_type}_{m:.2e}"][kcut])
-                        )
-                    else:
-                        data.append(
-                            np.log10(1 + data_read[f"{self.mobs_type}_{m:.2e}"])
-                        )
+                    data.append(
+                        np.log10(1 + data_read[f"{self.mobs_type}_{m:.2e}"][kcut])
+                    )
 
         data = np.ravel(data)
 
