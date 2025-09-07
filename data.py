@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision.transforms import Lambda
 
-from input_args import Inputs, _SIM_TYPES
+from input_args import _SIM_TYPES, Inputs
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -371,6 +371,10 @@ class NumberCountsDataset(BaseDataset):
 
         if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
             filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.number_counts.dat"
+        elif self.sim_type == "pinocchio_fiducial":
+            filename = (
+                f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.number_counts.dat"
+            )
         elif self.sim_type == "abacus":
             filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.number_counts.dat"
 
@@ -432,7 +436,6 @@ class PowerSpectrumDataset(BaseDataset):
             sim_type=sim_type,
         )
 
-
     def read_data(self, idx):
 
         if self.xlum_sobol:
@@ -445,6 +448,10 @@ class PowerSpectrumDataset(BaseDataset):
 
         if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
             filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.power_spectrum.npz"
+        elif self.sim_type == "pinocchio_fiducial":
+            filename = (
+                f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.power_spectrum.npz"
+            )
         elif self.sim_type == "abacus":
             filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.power_spectrum.npz"
 
@@ -459,7 +466,7 @@ class PowerSpectrumDataset(BaseDataset):
                 if self.kmax is not None:
                     kcut = (data_read["k"] <= self.kmax) & (data_read["k"] >= 0.02)
                 else:
-                    kcut = (data_read["k"] >= 0.02)
+                    kcut = data_read["k"] >= 0.02
 
                 for m in self.mobs_bins:
 
@@ -483,6 +490,7 @@ class DensityFieldDataset(BaseDataset):
         data_dir: str,
         mobs_bins: npt.ArrayLike,
         redshift: npt.ArrayLike,
+        overdensity: bool = False,
         mobs_type: str = "mass",
         xlum_sobol_n_models=0,
         xlum_params_file: str | None = None,
@@ -493,6 +501,8 @@ class DensityFieldDataset(BaseDataset):
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
+
+        self.overdensity = overdensity
 
         super(DensityFieldDataset, self).__init__(
             cosmo_params_file,
@@ -542,7 +552,18 @@ class DensityFieldDataset(BaseDataset):
 
                     data_tmp = data_read[f"{self.mobs_type}_{m:.2e}"]
 
-                    data_tmp = np.log10(1 + data_tmp)
+                    if self.overdensity:
+
+                        mean = np.mean(data_tmp)
+
+                        if mean != 0:
+
+                            data_tmp /= mean
+                            data_tmp -= 1
+
+                    else:
+
+                        data_tmp = np.log10(1 + data_tmp)
 
                     ndim = data_tmp.ndim
 
@@ -641,6 +662,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
             data_dir,
             args.probes.density_field.mobs_min,
             args.probes.density_field.redshift,
+            overdensity=args.probes.density_field.overdensity,
             mobs_type=args.probes.density_field.mobs_type,
             xlum_sobol_n_models=args.xlum_sobol_n_models,
             xlum_params_file=args.xlum_params_file,

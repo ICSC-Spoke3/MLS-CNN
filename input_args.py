@@ -150,6 +150,7 @@ class DensityFieldInputs(BaseModel):
     mobs_type: Literal["mass", "xlum"]
     redshift: list[float]
 
+    overdensity: bool = False
     n_augment_flip: int = 0
 
 
