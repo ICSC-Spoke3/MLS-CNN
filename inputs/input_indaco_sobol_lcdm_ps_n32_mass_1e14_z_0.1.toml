@@ -63,8 +63,8 @@ loss_skew = false
 loss_kurt = false
 # Use Gaussian negative log likelihood loss from pytorch (GaussianNLLLoss).
 gauss_nllloss = false
+mse_loss = true
 
-mse_loss = false
 
 # Use training parameters from previous tuning run.
 # If true, the values of the remaining tranining parameters of this section will not be used.
@@ -134,7 +134,7 @@ density_field_activation = "relu"
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["number_counts"]
+probe_list = ["power_spectrum"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_sobol_lcdm"
@@ -145,9 +145,9 @@ data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_s
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_n16_norsd/"
+data_dir = "density_field_n32_norsd/"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [1e14, 1.78e14, 3.16e14, 5.62e14, 1e15]
+mobs_min = [1e14]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
@@ -161,9 +161,9 @@ n_augment_flip = 0
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
 
 # Root directory with the data. Different mass cuts and redshifts are in sub-directories.
-data_dir = "power_spectrum_n128_norsd"
+data_dir = "power_spectrum_n32_norsd"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [1e14, 1.78e14, 3.16e14, 5.62e14, 1e15]
+mobs_min = [1e14]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"

@@ -33,7 +33,7 @@ verbose = true
 # If True, read data from disk and send to device by batches.
 lazy_loading = false
 
-pred_moments = false
+pred_moments = true
 
 [train]
 # These are the parameters used to train the network.
@@ -62,9 +62,7 @@ loss_skew = false
 # Ignored if gauss_nllloss=true.
 loss_kurt = false
 # Use Gaussian negative log likelihood loss from pytorch (GaussianNLLLoss).
-gauss_nllloss = false
-
-mse_loss = false
+gauss_nllloss = true
 
 # Use training parameters from previous tuning run.
 # If true, the values of the remaining tranining parameters of this section will not be used.
@@ -134,7 +132,7 @@ density_field_activation = "relu"
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["number_counts"]
+probe_list = ["number_counts", "density_field"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_sobol_lcdm"
@@ -155,6 +153,7 @@ mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0.1]
 
+overdensity = true
 n_augment_flip = 0
 
 [probes.power_spectrum]
@@ -204,7 +203,7 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 1000
+trials = 400
 # Maximum number of epochs for each trial.
 n_epochs = 300
 
@@ -272,7 +271,7 @@ choices = ["relu", "hardswish", "leakyrelu", "gelu", "celu", "selu", "silu"]
 
 [tune.regressor_batch_norm]
 
-choices = [true, false]
+choices = [false]
 
 [tune.ps_fc_layers]
 
