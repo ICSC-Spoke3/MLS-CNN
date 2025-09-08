@@ -240,6 +240,7 @@ def objective(
             use_loss_skew=args.train.loss_skew,
             use_loss_kurt=args.train.loss_kurt,
             gauss_nllloss=args.train.gauss_nllloss,
+            mse_loss=args.train.mse_loss,
         )
         val_loss = validation_loop(
             dataloader_val,
@@ -249,6 +250,7 @@ def objective(
             use_loss_skew=args.train.loss_skew,
             use_loss_kurt=args.train.loss_kurt,
             gauss_nllloss=args.train.gauss_nllloss,
+            mse_loss=args.train.mse_loss,
         )
 
         if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):

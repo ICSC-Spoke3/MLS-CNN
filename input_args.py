@@ -66,6 +66,7 @@ class TrainInputs(BaseModel):
     loss_skew: bool
     loss_kurt: bool
     gauss_nllloss: bool
+    mse_loss: bool = False
 
     n_epochs: int
 

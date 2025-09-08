@@ -217,6 +217,7 @@ def do_train(args: Inputs) -> None:
         loss_skew=args.train.loss_skew,
         loss_kurt=args.train.loss_kurt,
         gauss_nllloss=args.train.gauss_nllloss,
+        mse_loss=args.train.mse_loss,
         swa=args.train.swa,
         swa_model=swa_model if args.train.swa else None,
         swa_scheduler=swa_scheduler if args.train.swa else None,
@@ -794,6 +795,7 @@ def train_loop(
     use_loss_skew=False,
     use_loss_kurt=False,
     gauss_nllloss=False,
+    mse_loss=False,
 ) -> float:
 
     assert dataloader.batch_size is not None
@@ -843,6 +845,13 @@ def train_loop(
 
                 del pred_means
                 del pred_vars
+
+            elif mse_loss:
+
+                loss_fn = nn.MSELoss()
+                loss = loss_fn(pred_means, y)
+
+                del pred_means
 
             else:
 
@@ -913,6 +922,7 @@ def validation_loop(
     use_loss_skew=False,
     use_loss_kurt=False,
     gauss_nllloss=False,
+    mse_loss=False,
 ) -> float:
 
     num_batches = len(dataloader)
@@ -958,6 +968,13 @@ def validation_loop(
 
                 del pred_means
                 del pred_vars
+
+            elif mse_loss:
+
+                loss_fn = nn.MSELoss()
+                loss = loss_fn(pred_means, y)
+
+                del pred_means
 
             else:
 
@@ -1032,6 +1049,7 @@ def training(
     loss_skew=False,
     loss_kurt=False,
     gauss_nllloss=False,
+    mse_loss=False,
     swa: bool = False,
     swa_model: None | torch.optim.swa_utils.AveragedModel = None,
     swa_scheduler: None | torch.optim.swa_utils.SWALR = None,
@@ -1063,6 +1081,7 @@ def training(
             use_loss_skew=loss_skew,
             use_loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
+            mse_loss=mse_loss,
         )
         val_loss = validation_loop(
             val_dataloader,
@@ -1072,6 +1091,7 @@ def training(
             use_loss_skew=loss_skew,
             use_loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
+            mse_loss=mse_loss,
         )
 
         train_history.append(train_loss)
@@ -1125,6 +1145,7 @@ def training(
             use_loss_skew=loss_skew,
             use_loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
+            mse_loss=mse_loss,
         )
         if verbose:
             print(f"Final validation loss for EMA model: {val_loss_ema}.")
@@ -1156,6 +1177,7 @@ def training(
                 use_loss_skew=loss_skew,
                 use_loss_kurt=loss_kurt,
                 gauss_nllloss=gauss_nllloss,
+                mse_loss=mse_loss,
             )
             val_loss = validation_loop(
                 val_dataloader,
@@ -1165,6 +1187,7 @@ def training(
                 use_loss_skew=loss_skew,
                 use_loss_kurt=loss_kurt,
                 gauss_nllloss=gauss_nllloss,
+                mse_loss=mse_loss,
             )
 
             if verbose:
@@ -1186,6 +1209,7 @@ def training(
             use_loss_skew=loss_skew,
             use_loss_kurt=loss_kurt,
             gauss_nllloss=gauss_nllloss,
+            mse_loss=mse_loss,
         )
         if verbose:
             print(f"Final validation loss for SWA model: {val_loss_swa}.")
