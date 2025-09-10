@@ -64,7 +64,7 @@ loss_kurt = false
 # Use Gaussian negative log likelihood loss from pytorch (GaussianNLLLoss).
 gauss_nllloss = false
 
-mse_loss = false
+mse_loss = true
 
 # Use training parameters from previous tuning run.
 # If true, the values of the remaining tranining parameters of this section will not be used.

@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J nc_ps16_m1_z_0.1_1
+#SBATCH -J cnn32_o_m1_z_0.1_f7_1
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -46,15 +46,22 @@ n_threads=1
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_mass_1e14_1e15_5_z_0.1.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n16_mass_1e14_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n16_mass_1e14_z_0.1_f3.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n32_mass_1e14_z_0.1.toml"
+param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n32_mass_1e14_z_0.1_f3.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n64_mass_1e14_z_0.1.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_ps_n16_mass_1e14_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_ps_n32_mass_1e14_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_ps_n64_mass_1e14_z_0.1.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n16_mass_1e14_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n32_mass_1e14_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n64_mass_1e14_z_0.1.toml"
 
-param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n16_mass_1e14_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n16_mass_1e14_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n32_mass_1e14_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n64_mass_1e14_z_0.1.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_mass_1e14_1e15_5_z_0.1.toml"
 
@@ -128,15 +135,22 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_mass_1e14_1e15_5_z_0.1"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n16_mass_1e14_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n16_mass_1e14_z_0.1_f3"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n32_mass_1e14_z_0.1"
+output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n32_mass_1e14_z_0.1_f3"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n64_mass_1e14_z_0.1"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n16_mass_1e14_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n32_mass_1e14_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n64_mass_1e14_z_0.1"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n16_mass_1e14_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n32_mass_1e14_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n64_mass_1e14_z_0.1"
 
-output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n16_mass_1e14_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n16_mass_1e14_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n32_mass_1e14_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n64_mass_1e14_z_0.1"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_mass_1e14_1e15_5_z_0.1"
 
