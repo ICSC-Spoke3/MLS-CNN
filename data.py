@@ -244,6 +244,8 @@ class BaseDataset(ABC, Dataset):
         self.mobs_bins = np.ravel(np.array([mobs_bins]))
         self.redshift = np.ravel(np.array([redshift]))
 
+        self.xlum_sobol_n_models = xlum_sobol_n_models
+
         # Get models numbers.
         self.cosmo_models = get_cosmo_models_numbers(fraction, seed, sim_type=sim_type)
 
@@ -253,7 +255,7 @@ class BaseDataset(ABC, Dataset):
         )
 
         # Labels are cosmo params + xlum params.
-        if mobs_type == "xlum" and xlum_sobol_n_models > 0:
+        if mobs_type == "xlum" and self.xlum_sobol_n_models > 0:
 
             self.xlum_sobol = True
 
@@ -269,7 +271,7 @@ class BaseDataset(ABC, Dataset):
             )
 
         # Labels are cosmo params + fiducial xlum params.
-        elif mobs_type == "xlum" and xlum_sobol_n_models == 0:
+        elif mobs_type == "xlum" and self.xlum_sobol_n_models == 0:
 
             self.xlum_sobol = False
 
