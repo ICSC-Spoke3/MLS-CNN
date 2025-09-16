@@ -155,6 +155,8 @@ mobs_type = "mass"
 # List of redshifts (snapshots).
 redshift = [0.1]
 
+overdensity = true
+
 n_augment_flip = 0
 
 [probes.power_spectrum]
@@ -204,7 +206,7 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 200
+trials = 100
 # Maximum number of epochs for each trial.
 n_epochs = 300
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J cnn_o_n128_2e13_z_0.1_1
+#SBATCH -J cnn_o_n64_2e13_z_0.1_3
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -19,8 +19,8 @@ n_threads=1
 ########## Param. file: CNN #########
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n32_mass_2e13_z_0.1.toml"
-#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n64_mass_2e13_z_0.1.toml"
-param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n128_mass_2e13_z_0.1.toml"
+param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n64_mass_2e13_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n128_mass_2e13_z_0.1.toml"
 
 ########## Param. file: PS #########
 
@@ -31,8 +31,8 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 ########## Output dir.: CNN #########
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n32_mass_2e13_z_0.1"
-#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n64_mass_2e13_z_0.1"
-output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n128_mass_2e13_z_0.1"
+output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n64_mass_2e13_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n128_mass_2e13_z_0.1"
 
 ########## Output dir.: PS #########
 
@@ -49,6 +49,6 @@ mkdir -p logs
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_1.log
+python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_3.log
 
 python $exe_python train -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/train.log
