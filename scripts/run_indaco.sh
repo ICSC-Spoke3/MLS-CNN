@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J nc_cnn_n32_x5_z_0.1_2
+#SBATCH -J nc_cnn_n16_x5_z_0.1_4
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -60,9 +60,10 @@ n_threads=1
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_ps_n64_mass_1e14_z_0.1.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n16_mass_1e14_z_0.1.toml"
+param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n16_xlum_0.13_1_5_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n32_mass_1e14_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n32_xlum_0.13_z_0.1.toml"
-param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n32_xlum_0.13_1_5_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n32_xlum_0.13_1_5_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n64_mass_1e14_z_0.1.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n16_mass_1e14_z_0.1.toml"
@@ -156,9 +157,10 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n64_mass_1e14_z_0.1"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n16_mass_1e14_z_0.1"
+output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n16_xlum_0.13_1_5_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n32_mass_1e14_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n32_xlum_0.13_z_0.1"
-output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n32_xlum_0.13_1_5_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n32_xlum_0.13_1_5_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n64_mass_1e14_z_0.1"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n16_mass_1e14_z_0.1"
@@ -217,6 +219,6 @@ mkdir -p logs
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_2.log
+python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_4.log
 
 python $exe_python train -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/train.log
