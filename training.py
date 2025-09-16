@@ -472,26 +472,6 @@ def do_train(args: Inputs) -> None:
             send_to_device=args.lazy_loading,
         )
 
-        # Predictions vs targets.
-        ## Parameter names and labels.
-        param_labels_dict = {
-            "Omega_m": r"$\Omega_{\rm m}$",
-            "sigma8": r"$\sigma_8$",
-            "S8": r"$S_8$",
-            "h": r"$h$",
-            "n_s": r"$n_s$",
-            "Omega_b": r"$\Omega_{\rm b}$",
-            "w0": r"$w_0$",
-            "wa": r"$w_a$",
-            "xlf_a": r"$a_\mathrm{BA}$",
-            "xlf_b": r"$b_\mathrm{BA}$",
-            "xlf_c": r"$c_\mathrm{BA}$",
-            "xlf_sigma": r"$\sigma_\mathrm{BA}$",
-        }
-        param_names = args.cosmo_params_names
-        if args.xlum_sobol_n_models > 0:
-            param_names += ["xlf_a", "xlf_b", "xlf_c", "xlf_sigma"]
-
         plot.plot_pred_vs_target(
             target_train,
             pred_train,
@@ -638,26 +618,6 @@ def do_train(args: Inputs) -> None:
             args.output_dir,
             send_to_device=args.lazy_loading,
         )
-
-        # Predictions vs targets.
-        ## Parameter names and labels.
-        param_labels_dict = {
-            "Omega_m": r"$\Omega_{\rm m}$",
-            "sigma8": r"$\sigma_8$",
-            "S8": r"$S_8$",
-            "h": r"$h$",
-            "n_s": r"$n_s$",
-            "Omega_b": r"$\Omega_{\rm b}$",
-            "w0": r"$w_0$",
-            "wa": r"$w_a$",
-            "xlf_a": r"$a_\mathrm{BA}$",
-            "xlf_b": r"$b_\mathrm{BA}$",
-            "xlf_c": r"$c_\mathrm{BA}$",
-            "xlf_sigma": r"$\sigma_\mathrm{BA}$",
-        }
-        param_names = args.cosmo_params_names
-        if args.xlum_sobol_n_models > 0:
-            param_names += ["xlf_a", "xlf_b", "xlf_c", "xlf_sigma"]
 
         plot.plot_pred_vs_target(
             target_train,
