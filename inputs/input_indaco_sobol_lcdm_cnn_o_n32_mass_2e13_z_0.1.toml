@@ -206,7 +206,7 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 200
+trials = 100
 # Maximum number of epochs for each trial.
 n_epochs = 300
 
