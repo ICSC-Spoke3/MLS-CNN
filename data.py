@@ -523,7 +523,7 @@ class DensityFieldDataset(BaseDataset):
             sim_type=sim_type,
         )
 
-    def read_data(self, idx):
+    def read_data(self, idx, n_augment=0):
 
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
@@ -533,14 +533,19 @@ class DensityFieldDataset(BaseDataset):
             cm_idx = idx
             xm_suffix = ""
 
+        if n_augment > 0:
+
+            n_augment_str = f".augmented_{n_augment:03}"
+        else:
+
+            n_augment_str = ""
+
         if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
-            filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.density_field.npz"
+            filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.density_field{n_augment_str}.npz"
         elif self.sim_type == "pinocchio_fiducial":
-            filename = (
-                f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.density_field.npz"
-            )
+            filename = f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.density_field{n_augment_str}.npz"
         elif self.sim_type == "abacus":
-            filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.density_field.npz"
+            filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.density_field{n_augment_str}.npz"
 
         data = []
 
@@ -598,31 +603,84 @@ class DensityFieldDataset(BaseDataset):
         return data
 
 
+# class AugmentedDensityFieldDataset(Dataset):
+
+#     def __init__(self, dataset: DensityFieldDataset, n_augment_flip: int) -> None:
+
+#         self.dataset = dataset
+
+#         self.n_augment_flip = n_augment_flip
+
+#     def __len__(self):
+
+#         return len(self.dataset) * (self.n_augment_flip + 1)
+
+#     def __getitem__(self, idx):
+
+#         idx_flip_list_3d = [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
+#         # idx_flip_list_2d = [[], [1], [2], [1, 2]]
+
+#         idx_base = int(idx % len(self.dataset))
+#         idx_flip = int(idx // len(self.dataset))
+
+#         data, label = self.dataset[idx_base]
+
+#         data = torch.flip(data, idx_flip_list_3d[idx_flip])
+
+#         return data, label
+
+
 class AugmentedDensityFieldDataset(Dataset):
 
-    def __init__(self, dataset: DensityFieldDataset, n_augment_flip: int) -> None:
+    def __init__(self, dataset: DensityFieldDataset, n_augment: int) -> None:
 
         self.dataset = dataset
 
-        self.n_augment_flip = n_augment_flip
+        self.n_augment = n_augment
+
+        if not self.dataset.lazy_loading:
+            self.data = []
+            for i in range(len(self.dataset) * (self.n_augment + 1)):
+                self.data.append(self.read_data(i).to(device, non_blocking=True))
 
     def __len__(self):
 
-        return len(self.dataset) * (self.n_augment_flip + 1)
+        return len(self.dataset) * (self.n_augment + 1)
 
     def __getitem__(self, idx):
 
-        idx_flip_list_3d = [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
-        # idx_flip_list_2d = [[], [1], [2], [1, 2]]
+        if self.dataset.lazy_loading:
+            data = self.read_data(idx)
+        else:
+            data = self.data[idx]
 
-        idx_base = int(idx % len(self.dataset))
-        idx_flip = int(idx // len(self.dataset))
-
-        data, label = self.dataset[idx_base]
-
-        data = torch.flip(data, idx_flip_list_3d[idx_flip])
+        label = self.read_label(idx)
 
         return data, label
+
+    def read_label(self, idx):
+
+        idx_base = int(idx % len(self.dataset))
+
+        _, label = self.dataset[idx_base]
+
+        return label
+
+
+    def read_data(self, idx):
+
+        idx_base = int(idx % len(self.dataset))
+        idx_augment = int(idx // len(self.dataset))
+
+        if idx_augment > 0:
+
+            data = self.dataset.read_data(idx_base, n_augment=idx_augment)
+
+        else:
+
+            data, _ = self.dataset[idx_base]
+
+        return data
 
 
 class MultiProbeDataset(Dataset):
