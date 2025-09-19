@@ -466,9 +466,9 @@ class PowerSpectrumDataset(BaseDataset):
             with np.load(data_path) as data_read:
 
                 if self.kmax is not None:
-                    kcut = (data_read["k"] <= self.kmax) & (data_read["k"] >= 0.02)
+                    kcut = (data_read["k"] <= self.kmax) & (data_read["k"] >= 0.01)
                 else:
-                    kcut = data_read["k"] >= 0.02
+                    kcut = data_read["k"] >= 0.01
 
                 for m in self.mobs_bins:
 
