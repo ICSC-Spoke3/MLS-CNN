@@ -134,7 +134,7 @@ density_field_activation = "relu"
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["number_counts"]
+probe_list = ["density_field", "number_counts"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_sobol_lcdm"
@@ -205,7 +205,7 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 1000
+trials = 200
 # Maximum number of epochs for each trial.
 n_epochs = 640
 

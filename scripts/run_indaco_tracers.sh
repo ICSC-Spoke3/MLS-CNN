@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J ps_n32_2e13_z_0.1_1
+#SBATCH -J cnn_o_n32_2e13_z_0.1_augment_1
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -18,7 +18,9 @@ n_threads=1
 
 ########## Param. file: CNN #########
 
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n16_mass_2e13_z_0.1_augment.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n32_mass_2e13_z_0.1.toml"
+param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n32_mass_2e13_z_0.1_augment.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n32_mass_2e13_z_0.1_wo_om_s8.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n32_mass_2e13_4e14_4_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_cnn_o_n64_mass_2e13_z_0.1.toml"
@@ -27,13 +29,15 @@ n_threads=1
 
 ########## Param. file: PS #########
 
-param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_ps_n32_mass_2e13_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_ps_n32_mass_2e13_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_ps_n64_mass_2e13_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_ps_n128_mass_2e13_z_0.1.toml"
 
 ########## Output dir.: CNN #########
 
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n16_mass_2e13_z_0.1_augment"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n32_mass_2e13_z_0.1"
+output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n32_mass_2e13_z_0.1_augment"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n32_mass_2e13_z_0.1_wo_om_s8"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n32_mass_2e13_4e14_4_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/cnn_o_n32_mass_2e13_z_0.1_n2800"
@@ -45,7 +49,7 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 ########## Output dir.: PS #########
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n32_mass_2e13_z_0.1"
-output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n32_mass_2e13_z_0.1_test_kmin"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n32_mass_2e13_z_0.1_test_kmin"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n32_mass_2e13_z_0.1_n2800"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n64_mass_2e13_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/ps_n64_mass_2e13_z_0.1_n2800"
