@@ -288,89 +288,135 @@ def suggest_args(
     # Deepcopy args before changing values with current trial.
     args = args.model_copy(deep=True)
 
-    args.train.learning_rate = trial.suggest_float(
-        "learning_rate",
-        args.tune.learning_rate.low,
-        args.tune.learning_rate.high,
-        step=args.tune.learning_rate.step,
-        log=args.tune.learning_rate.log,
-    )
-    args.train.weight_decay = trial.suggest_float(
-        "weight_decay",
-        args.tune.weight_decay.low,
-        args.tune.weight_decay.high,
-        step=args.tune.weight_decay.step,
-        log=args.tune.weight_decay.log,
-    )
-    args.train.beta_1 = trial.suggest_float(
-        "beta_1",
-        args.tune.beta_1.low,
-        args.tune.beta_1.high,
-        step=args.tune.beta_1.step,
-        log=args.tune.beta_1.log,
-    )
-    args.train.beta_2 = trial.suggest_float(
-        "beta_2",
-        args.tune.beta_2.low,
-        args.tune.beta_2.high,
-        step=args.tune.beta_2.step,
-        log=args.tune.beta_2.log,
-    )
-    args.train.eps = trial.suggest_float(
-        "eps",
-        args.tune.eps.low,
-        args.tune.eps.high,
-        step=args.tune.eps.step,
-        log=args.tune.eps.log,
-    )
+    if args.tune.learning_rate.high > args.tune.learning_rate.low:
+        args.train.learning_rate = trial.suggest_float(
+            "learning_rate",
+            args.tune.learning_rate.low,
+            args.tune.learning_rate.high,
+            step=args.tune.learning_rate.step,
+            log=args.tune.learning_rate.log,
+        )
+    else:
+        args.train.learning_rate = args.tune.learning_rate.low
+    if args.tune.weight_decay.high > args.tune.weight_decay.low:
+        args.train.weight_decay = trial.suggest_float(
+            "weight_decay",
+            args.tune.weight_decay.low,
+            args.tune.weight_decay.high,
+            step=args.tune.weight_decay.step,
+            log=args.tune.weight_decay.log,
+        )
+    else:
+        args.train.weight_decay = args.tune.weight_decay.low
+    if args.tune.beta_1.high > args.tune.beta_1.low:
+        args.train.beta_1 = trial.suggest_float(
+            "beta_1",
+            args.tune.beta_1.low,
+            args.tune.beta_1.high,
+            step=args.tune.beta_1.step,
+            log=args.tune.beta_1.log,
+        )
+    else:
+        args.train.beta_1 = args.tune.beta_1.low
+    if args.tune.beta_2.high > args.tune.beta_2.low:
+        args.train.beta_2 = trial.suggest_float(
+            "beta_2",
+            args.tune.beta_2.low,
+            args.tune.beta_2.high,
+            step=args.tune.beta_2.step,
+            log=args.tune.beta_2.log,
+        )
+    else:
+        args.train.beta_2 = args.tune.beta_2.low
+    if args.tune.eps.high > args.tune.eps.low:
+        args.train.eps = trial.suggest_float(
+            "eps",
+            args.tune.eps.low,
+            args.tune.eps.high,
+            step=args.tune.eps.step,
+            log=args.tune.eps.log,
+        )
+    else:
+        args.train.eps = args.tune.eps.low
     if len(args.tune.batch_size.choices) > 1:
         args.train.batch_size = trial.suggest_categorical(
             "batch_size", args.tune.batch_size.choices
         )
     else:
         args.train.batch_size = args.tune.batch_size.choices[0]
-    args.train.dropout = trial.suggest_float(
-        "dropout",
-        args.tune.dropout.low,
-        args.tune.dropout.high,
-        step=args.tune.dropout.step,
-        log=args.tune.dropout.log,
-    )
+    if args.tune.dropout.high > args.tune.dropout.low:
+        args.train.dropout = trial.suggest_float(
+            "dropout",
+            args.tune.dropout.low,
+            args.tune.dropout.high,
+            step=args.tune.dropout.step,
+            log=args.tune.dropout.log,
+        )
+    else:
+        args.train.dropout = args.tune.dropout.low
     if args.train.scheduler == "reduce_on_plateau":
-        args.train.reduce_on_plateau_factor = trial.suggest_float(
-            "reduce_on_plateau_factor",
-            args.tune.reduce_on_plateau_factor.low,
-            args.tune.reduce_on_plateau_factor.high,
-            step=args.tune.reduce_on_plateau_factor.step,
-            log=args.tune.reduce_on_plateau_factor.log,
-        )
+        if (
+            args.tune.reduce_on_plateau_factor.high
+            > args.tune.reduce_on_plateau_factor.low
+        ):
+            args.train.reduce_on_plateau_factor = trial.suggest_float(
+                "reduce_on_plateau_factor",
+                args.tune.reduce_on_plateau_factor.low,
+                args.tune.reduce_on_plateau_factor.high,
+                step=args.tune.reduce_on_plateau_factor.step,
+                log=args.tune.reduce_on_plateau_factor.log,
+            )
+        else:
+            args.train.reduce_on_plateau_factor = args.tune.reduce_on_plateau_factor.low
     if args.train.scheduler == "cosine_warm_restarts":
-        args.train.cosine_warm_restarts_t_0 = trial.suggest_int(
-            "cosine_warm_restarts_t_0",
-            args.tune.cosine_warm_restarts_t_0.low,
-            args.tune.cosine_warm_restarts_t_0.high,
-            step=args.tune.cosine_warm_restarts_t_0.step,
-            log=args.tune.cosine_warm_restarts_t_0.log,
-        )
-        args.train.cosine_warm_restarts_t_mult = trial.suggest_int(
-            "cosine_warm_restarts_t_mult",
-            args.tune.cosine_warm_restarts_t_mult.low,
-            args.tune.cosine_warm_restarts_t_mult.high,
-            step=args.tune.cosine_warm_restarts_t_mult.step,
-            log=args.tune.cosine_warm_restarts_t_mult.log,
-        )
+        if (
+            args.tune.cosine_warm_restarts_t_0.high
+            > args.tune.cosine_warm_restarts_t_0.low
+        ):
+            args.train.cosine_warm_restarts_t_0 = trial.suggest_int(
+                "cosine_warm_restarts_t_0",
+                args.tune.cosine_warm_restarts_t_0.low,
+                args.tune.cosine_warm_restarts_t_0.high,
+                step=args.tune.cosine_warm_restarts_t_0.step,
+                log=args.tune.cosine_warm_restarts_t_0.log,
+            )
+        else:
+            args.train.cosine_warm_restarts_t_0 = args.tune.cosine_warm_restarts_t_0.low
+        if (
+            args.tune.cosine_warm_restarts_t_mult.high
+            > args.tune.cosine_warm_restarts_t_mult.low
+        ):
+            args.train.cosine_warm_restarts_t_mult = trial.suggest_int(
+                "cosine_warm_restarts_t_mult",
+                args.tune.cosine_warm_restarts_t_mult.low,
+                args.tune.cosine_warm_restarts_t_mult.high,
+                step=args.tune.cosine_warm_restarts_t_mult.step,
+                log=args.tune.cosine_warm_restarts_t_mult.log,
+            )
+        else:
+            args.train.cosine_warm_restarts_t_mult = (
+                args.tune.cosine_warm_restarts_t_mult.low
+            )
 
     for probe in args.probes.probe_list:
 
         if probe == "density_field":
 
-            args.train.density_field_n_channels_first = trial.suggest_int(
-                "density_field_n_channels_first",
-                args.tune.density_field_n_channels_first.low,
-                args.tune.density_field_n_channels_first.high,
-                step=args.tune.density_field_n_channels_first.step,
-                log=args.tune.density_field_n_channels_first.log,
-            )
+            if (
+                args.tune.density_field_n_channels_first.high
+                > args.tune.density_field_n_channels_first.low
+            ):
+                args.train.density_field_n_channels_first = trial.suggest_int(
+                    "density_field_n_channels_first",
+                    args.tune.density_field_n_channels_first.low,
+                    args.tune.density_field_n_channels_first.high,
+                    step=args.tune.density_field_n_channels_first.step,
+                    log=args.tune.density_field_n_channels_first.log,
+                )
+            else:
+                args.train.density_field_n_channels_first = (
+                    args.tune.density_field_n_channels_first.low
+                )
             if len(args.tune.density_field_final_nside.choices) > 1:
                 args.train.density_field_final_nside = trial.suggest_categorical(
                     "density_field_final_nside",
@@ -380,13 +426,21 @@ def suggest_args(
                 args.train.density_field_final_nside = (
                     args.tune.density_field_final_nside.choices[0]
                 )
-            args.train.density_field_n_conv_per_block = trial.suggest_int(
-                "density_field_n_conv_per_block",
-                args.tune.density_field_n_conv_per_block.low,
-                args.tune.density_field_n_conv_per_block.high,
-                step=args.tune.density_field_n_conv_per_block.step,
-                log=args.tune.density_field_n_conv_per_block.log,
-            )
+            if (
+                args.tune.density_field_n_conv_per_block.high
+                > args.tune.density_field_n_conv_per_block.low
+            ):
+                args.train.density_field_n_conv_per_block = trial.suggest_int(
+                    "density_field_n_conv_per_block",
+                    args.tune.density_field_n_conv_per_block.low,
+                    args.tune.density_field_n_conv_per_block.high,
+                    step=args.tune.density_field_n_conv_per_block.step,
+                    log=args.tune.density_field_n_conv_per_block.log,
+                )
+            else:
+                args.train.density_field_n_conv_per_block = (
+                    args.tune.density_field_n_conv_per_block.low
+                )
             if len(args.tune.density_field_activation.choices) > 1:
                 args.train.density_field_activation = trial.suggest_categorical(
                     "density_field_activation",
@@ -416,20 +470,29 @@ def suggest_args(
 
         elif probe == "power_spectrum":
 
-            args.train.ps_fc_layers = trial.suggest_int(
-                "ps_fc_layers",
-                args.tune.ps_fc_layers.low,
-                args.tune.ps_fc_layers.high,
-                step=args.tune.ps_fc_layers.step,
-                log=args.tune.ps_fc_layers.log,
-            )
-            args.train.ps_fc_units_per_layer = trial.suggest_int(
-                "ps_fc_units_per_layer",
-                args.tune.ps_fc_units_per_layer.low,
-                args.tune.ps_fc_units_per_layer.high,
-                step=args.tune.ps_fc_units_per_layer.step,
-                log=args.tune.ps_fc_units_per_layer.log,
-            )
+            if args.tune.ps_fc_layers.high > args.tune.ps_fc_layers.low:
+                args.train.ps_fc_layers = trial.suggest_int(
+                    "ps_fc_layers",
+                    args.tune.ps_fc_layers.low,
+                    args.tune.ps_fc_layers.high,
+                    step=args.tune.ps_fc_layers.step,
+                    log=args.tune.ps_fc_layers.log,
+                )
+            else:
+                args.train.ps_fc_layers = args.tune.ps_fc_layers.low
+            if (
+                args.tune.ps_fc_units_per_layer.high
+                > args.tune.ps_fc_units_per_layer.low
+            ):
+                args.train.ps_fc_units_per_layer = trial.suggest_int(
+                    "ps_fc_units_per_layer",
+                    args.tune.ps_fc_units_per_layer.low,
+                    args.tune.ps_fc_units_per_layer.high,
+                    step=args.tune.ps_fc_units_per_layer.step,
+                    log=args.tune.ps_fc_units_per_layer.log,
+                )
+            else:
+                args.train.ps_fc_units_per_layer = args.tune.ps_fc_units_per_layer.low
             if len(args.tune.ps_activation.choices) > 1:
                 args.train.ps_activation = trial.suggest_categorical(
                     "ps_activation", args.tune.ps_activation.choices
@@ -445,20 +508,29 @@ def suggest_args(
 
         elif probe == "number_counts":
 
-            args.train.nc_fc_layers = trial.suggest_int(
-                "nc_fc_layers",
-                args.tune.nc_fc_layers.low,
-                args.tune.nc_fc_layers.high,
-                step=args.tune.nc_fc_layers.step,
-                log=args.tune.nc_fc_layers.log,
-            )
-            args.train.nc_fc_units_per_layer = trial.suggest_int(
-                "nc_fc_units_per_layer",
-                args.tune.nc_fc_units_per_layer.low,
-                args.tune.nc_fc_units_per_layer.high,
-                step=args.tune.nc_fc_units_per_layer.step,
-                log=args.tune.nc_fc_units_per_layer.log,
-            )
+            if args.tune.nc_fc_layers.high > args.tune.nc_fc_layers.low:
+                args.train.nc_fc_layers = trial.suggest_int(
+                    "nc_fc_layers",
+                    args.tune.nc_fc_layers.low,
+                    args.tune.nc_fc_layers.high,
+                    step=args.tune.nc_fc_layers.step,
+                    log=args.tune.nc_fc_layers.log,
+                )
+            else:
+                args.train.nc_fc_layers = args.tune.nc_fc_layers.low
+            if (
+                args.tune.nc_fc_units_per_layer.high
+                > args.tune.nc_fc_units_per_layer.low
+            ):
+                args.train.nc_fc_units_per_layer = trial.suggest_int(
+                    "nc_fc_units_per_layer",
+                    args.tune.nc_fc_units_per_layer.low,
+                    args.tune.nc_fc_units_per_layer.high,
+                    step=args.tune.nc_fc_units_per_layer.step,
+                    log=args.tune.nc_fc_units_per_layer.log,
+                )
+            else:
+                args.train.nc_fc_units_per_layer = args.tune.nc_fc_units_per_layer.low
             if len(args.tune.nc_activation.choices) > 1:
                 args.train.nc_activation = trial.suggest_categorical(
                     "nc_activation", args.tune.nc_activation.choices
@@ -475,20 +547,31 @@ def suggest_args(
         else:
             raise ValueError(f"Unsupported probe: {probe}.")
 
-    args.train.regressor_fc_layers = trial.suggest_int(
-        "regressor_fc_layers",
-        args.tune.regressor_fc_layers.low,
-        args.tune.regressor_fc_layers.high,
-        step=args.tune.regressor_fc_layers.step,
-        log=args.tune.regressor_fc_layers.log,
-    )
-    args.train.regressor_fc_units_per_layer = trial.suggest_int(
-        "regressor_fc_units_per_layer",
-        args.tune.regressor_fc_units_per_layer.low,
-        args.tune.regressor_fc_units_per_layer.high,
-        step=args.tune.regressor_fc_units_per_layer.step,
-        log=args.tune.regressor_fc_units_per_layer.log,
-    )
+    if args.tune.regressor_fc_layers.high > args.tune.regressor_fc_layers.low:
+        args.train.regressor_fc_layers = trial.suggest_int(
+            "regressor_fc_layers",
+            args.tune.regressor_fc_layers.low,
+            args.tune.regressor_fc_layers.high,
+            step=args.tune.regressor_fc_layers.step,
+            log=args.tune.regressor_fc_layers.log,
+        )
+    else:
+        args.train.regressor_fc_layers = args.tune.regressor_fc_layers.low
+    if (
+        args.tune.regressor_fc_units_per_layer.high
+        > args.tune.regressor_fc_units_per_layer.low
+    ):
+        args.train.regressor_fc_units_per_layer = trial.suggest_int(
+            "regressor_fc_units_per_layer",
+            args.tune.regressor_fc_units_per_layer.low,
+            args.tune.regressor_fc_units_per_layer.high,
+            step=args.tune.regressor_fc_units_per_layer.step,
+            log=args.tune.regressor_fc_units_per_layer.log,
+        )
+    else:
+        args.train.regressor_fc_units_per_layer = (
+            args.tune.regressor_fc_units_per_layer.low
+        )
     if len(args.tune.regressor_activation.choices) > 1:
         args.train.regressor_activation = trial.suggest_categorical(
             "regressor_activation", args.tune.regressor_activation.choices
