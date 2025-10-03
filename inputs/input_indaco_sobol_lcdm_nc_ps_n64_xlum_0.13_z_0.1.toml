@@ -46,12 +46,12 @@ compile_model = false
 compile_mode = "default"
 
 # Maximum number of epochs.
-n_epochs = 640
+n_epochs = 320
 
 # Use early stopping.
 early_stopping = true
 # Patience for early stopping.
-patience_early_stopping = 40
+patience_early_stopping = 20
 
 # Settings for the loss function.
 
@@ -78,7 +78,7 @@ study_name = "mystudy"
 scheduler = "reduce_on_plateau"
 
 # Patience for ReduceOnPlateau learning rate scheduler.
-reduce_on_plateau_patience = 20
+reduce_on_plateau_patience = 10
 reduce_on_plateau_factor = 0.1
 
 # CosineAnnealingWarmRestarts scheduler.
@@ -205,9 +205,9 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 200
+trials = 50
 # Maximum number of epochs for each trial.
-n_epochs = 640
+n_epochs = 320
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
 pruner = "hyperband"
@@ -219,7 +219,7 @@ median_n_min_trials = 1
 
 # Parameters for hyperband pruner (see optuna documentation).
 hyperband_min_resource = 20
-hyperband_reduction_factor = 2
+hyperband_reduction_factor = 3
 
 [tune.learning_rate]
 
@@ -251,7 +251,7 @@ log = true
 
 [tune.batch_size]
 
-choices = [16, 32, 64, 128]
+choices = [16, 32, 64, 128, 256]
 
 [tune.regressor_fc_layers]
 
@@ -271,7 +271,7 @@ choices = ["relu"]
 
 [tune.regressor_batch_norm]
 
-choices = [true, false]
+choices = [true]
 
 [tune.ps_fc_layers]
 
@@ -291,7 +291,7 @@ choices = ["relu"]
 
 [tune.ps_batch_norm]
 
-choices = [true, false]
+choices = [true]
 
 [tune.nc_fc_layers]
 
@@ -311,12 +311,12 @@ choices = ["relu"]
 
 [tune.nc_batch_norm]
 
-choices = [true, false]
+choices = [true]
 
 [tune.density_field_n_channels_first]
 
 low = 1
-high = 200
+high = 100
 step = 1
 log = true
 
@@ -327,7 +327,7 @@ choices = [2, 4, 8, 16, 32]
 [tune.density_field_n_conv_per_block]
 
 low = 1
-high = 5
+high = 3
 step = 1
 log = true
 

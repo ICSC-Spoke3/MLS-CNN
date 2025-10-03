@@ -46,7 +46,7 @@ compile_model = false
 compile_mode = "default"
 
 # Maximum number of epochs.
-n_epochs = 300
+n_epochs = 320
 
 # Use early stopping.
 early_stopping = true
@@ -86,12 +86,12 @@ cosine_warm_restarts_t_0 = 20
 cosine_warm_restarts_t_mult = 1
 
 # SWA.
-swa = true
+swa = false
 swa_n_epochs = 10
 swa_lr = 0.0001
 
 # EMA.
-ema = true
+ema = false
 
 # Batch size for the training dataset.
 batch_size = 32
@@ -134,7 +134,7 @@ density_field_activation = "relu"
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["number_counts", "density_field"]
+probe_list = ["density_field", "number_counts"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_sobol_lcdm"
@@ -164,7 +164,7 @@ overdensity = true
 # Root directory with the data. Different mass cuts and redshifts are in sub-directories.
 data_dir = "power_spectrum_n32_norsd"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [0.13]
+mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
@@ -205,9 +205,9 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 100
+trials = 30
 # Maximum number of epochs for each trial.
-n_epochs = 300
+n_epochs = 320
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
 pruner = "hyperband"
@@ -218,8 +218,8 @@ median_n_warmup_steps = 20
 median_n_min_trials = 1
 
 # Parameters for hyperband pruner (see optuna documentation).
-hyperband_min_resource = 30
-hyperband_reduction_factor = 2
+hyperband_min_resource = 20
+hyperband_reduction_factor = 3
 
 [tune.learning_rate]
 
@@ -251,21 +251,19 @@ log = true
 
 [tune.batch_size]
 
-choices = [16, 32, 64, 128]
+choices = [16, 32, 64, 128, 256]
 
 [tune.regressor_fc_layers]
 
 low = 2
 high = 2
 step = 1
-log = false
 
 [tune.regressor_fc_units_per_layer]
 
 low = 100
 high = 1000
 step = 100
-log = false
 
 [tune.regressor_activation]
 
@@ -273,21 +271,19 @@ choices = ["relu"]
 
 [tune.regressor_batch_norm]
 
-choices = [true, false]
+choices = [true]
 
 [tune.ps_fc_layers]
 
-low = 1
-high = 5
+low = 2
+high = 2
 step = 1
-log = true
 
 [tune.ps_fc_units_per_layer]
 
-low = 1
+low = 100
 high = 1000
-step = 1
-log = true
+step = 100
 
 [tune.ps_activation]
 
@@ -295,21 +291,19 @@ choices = ["relu"]
 
 [tune.ps_batch_norm]
 
-choices = [true, false]
+choices = [true]
 
 [tune.nc_fc_layers]
 
 low = 2
 high = 2
 step = 1
-log = false
 
 [tune.nc_fc_units_per_layer]
 
 low = 100
 high = 1000
 step = 100
-log = false
 
 [tune.nc_activation]
 
@@ -321,14 +315,14 @@ choices = [true]
 
 [tune.density_field_n_channels_first]
 
-low = 5
-high = 50
-step = 5
-log = false
+low = 1
+high = 100
+step = 1
+log = true
 
 [tune.density_field_final_nside]
 
-choices = [2, 4, 8]
+choices = [2, 4, 8, 16]
 
 [tune.density_field_n_conv_per_block]
 
