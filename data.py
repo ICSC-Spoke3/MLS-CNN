@@ -466,9 +466,9 @@ class PowerSpectrumDataset(BaseDataset):
             with np.load(data_path) as data_read:
 
                 if self.kmax is not None:
-                    kcut = (data_read["k"] <= self.kmax) & (data_read["k"] >= 0.01)
+                    kcut = (data_read["k"] <= self.kmax) & (data_read["k"] >= 0.02)
                 else:
-                    kcut = data_read["k"] >= 0.01
+                    kcut = data_read["k"] >= 0.02
 
                 for m in self.mobs_bins:
 
@@ -638,7 +638,7 @@ class AugmentedDensityFieldDataset(Dataset):
 
         self.n_augment = n_augment
 
-        if not self.dataset.lazy_loading:
+        if not self.dataset.dataset.lazy_loading:
             self.data = []
             for i in range(len(self.dataset) * (self.n_augment + 1)):
                 self.data.append(self.read_data(i).to(device, non_blocking=True))
@@ -649,7 +649,7 @@ class AugmentedDensityFieldDataset(Dataset):
 
     def __getitem__(self, idx):
 
-        if self.dataset.lazy_loading:
+        if self.dataset.dataset.lazy_loading:
             data = self.read_data(idx)
         else:
             data = self.data[idx]
@@ -674,7 +674,7 @@ class AugmentedDensityFieldDataset(Dataset):
 
         if idx_augment > 0:
 
-            data = self.dataset.read_data(idx_base, n_augment=idx_augment)
+            data = self.dataset.dataset.read_data(idx_base, n_augment=idx_augment)
 
         else:
 

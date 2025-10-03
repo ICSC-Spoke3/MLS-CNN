@@ -92,6 +92,9 @@ def do_tune(args: Inputs) -> None:
             )
         else:
             print("Ignoring data augmentation in multiprobe setup.")
+
+    print("Train dataset length: ", len(dataset_train))
+    print("Val dataset length: ", len(dataset_val))
     print(f"-------------------------------\n")
 
     objective_func = get_objective_func(args, dataset_train, dataset_val)
