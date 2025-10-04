@@ -195,14 +195,18 @@ def get_cosmo_models_numbers(
         models = np.array([1 for _ in range(n_sims)])
 
     elif sim_type == "abacus":
+        # Only models that vary omega_cdm, omega_b, n_s, A_s.
         # Fiducial.
         models = [0]
 
         # Linear derivative grid.
-        models += [i for i in range(100, 127)]
+        models += [i for i in range(100, 106)]
+        models += [i for i in range(112, 114)]
+        models += [i for i in range(116, 121)]
+        models += [i for i in range(125, 127)]
 
         # Broad emulator grid.
-        models += [i for i in range(130, 182)]
+        models += [i for i in range(130, 147)]
 
         models = np.array(models)
 
@@ -665,7 +669,6 @@ class AugmentedDensityFieldDataset(Dataset):
         _, label = self.dataset[idx_base]
 
         return label
-
 
     def read_data(self, idx):
 
