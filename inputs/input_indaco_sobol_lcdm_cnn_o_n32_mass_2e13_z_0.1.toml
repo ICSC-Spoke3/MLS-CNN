@@ -21,7 +21,7 @@ xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples
 fraction_total = 1
 # Validation and test datasets fractions (applied after fraction_total).
 fraction_validation = 0.125
-fraction_test = 0.125
+fraction_test = 0.0625
 # Seed used to split datasets and select fractions.
 split_seed = 1234
 

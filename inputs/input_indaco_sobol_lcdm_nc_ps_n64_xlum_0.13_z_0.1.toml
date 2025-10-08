@@ -15,15 +15,15 @@ cosmo_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/models_param
 # Only used if mobs_type="xlum" for at least one of the considered probes.
 xlum_sobol_n_models = 8
 # File with the values of the X-ray illumination parameters.
-xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples_Nmodels_8samples_6sigma.npz"
+xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples_Nmodels_8samples_6sigma_new.npz"
 
 # Fraction of the total dataset to be used.
 fraction_total = 1
 # Validation and test datasets fractions (applied after fraction_total).
-fraction_validation = 0.125
-fraction_test = 0.125
+fraction_validation = 0.0625
+fraction_test = 0.0625
 # Seed used to split datasets and select fractions.
-split_seed = 1234
+split_seed = 1235
 
 # Verbose output.
 verbose = true
@@ -46,7 +46,7 @@ compile_model = false
 compile_mode = "default"
 
 # Maximum number of epochs.
-n_epochs = 320
+n_epochs = 1000
 
 # Use early stopping.
 early_stopping = true
@@ -205,12 +205,12 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 50
+trials = 10
 # Maximum number of epochs for each trial.
-n_epochs = 320
+n_epochs = 1000
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
-pruner = "hyperband"
+pruner = "median"
 
 # Parameters for median pruner (see optuna documentation).
 median_n_startup_trials = 10
@@ -219,7 +219,7 @@ median_n_min_trials = 1
 
 # Parameters for hyperband pruner (see optuna documentation).
 hyperband_min_resource = 20
-hyperband_reduction_factor = 3
+hyperband_reduction_factor = 2
 
 [tune.learning_rate]
 
@@ -251,13 +251,14 @@ log = true
 
 [tune.batch_size]
 
-choices = [16, 32, 64, 128, 256]
+choices = [16, 32, 64, 128, 256, 512, 1024]
 
 [tune.regressor_fc_layers]
 
-low = 2
-high = 2
+low = 1
+high = 5
 step = 1
+log = true
 
 [tune.regressor_fc_units_per_layer]
 
@@ -275,9 +276,10 @@ choices = [true]
 
 [tune.ps_fc_layers]
 
-low = 2
-high = 2
+low = 1
+high = 5
 step = 1
+log = true
 
 [tune.ps_fc_units_per_layer]
 
@@ -295,9 +297,10 @@ choices = [true]
 
 [tune.nc_fc_layers]
 
-low = 2
-high = 2
+low = 1
+high = 5
 step = 1
+log = true
 
 [tune.nc_fc_units_per_layer]
 

@@ -15,13 +15,13 @@ cosmo_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/models_param
 # Only used if mobs_type="xlum" for at least one of the considered probes.
 xlum_sobol_n_models = 8
 # File with the values of the X-ray illumination parameters.
-xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples_Nmodels_8samples_6sigma.npz"
+xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples_Nmodels_8samples_6sigma_new.npz"
 
 # Fraction of the total dataset to be used.
 fraction_total = 1
 # Validation and test datasets fractions (applied after fraction_total).
-fraction_validation = 0.125
-fraction_test = 0.125
+fraction_validation = 0.0625
+fraction_test = 0.0625
 # Seed used to split datasets and select fractions.
 split_seed = 1234
 
@@ -205,7 +205,7 @@ compile_model = true
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 15
+trials = 5
 # Maximum number of epochs for each trial.
 n_epochs = 320
 

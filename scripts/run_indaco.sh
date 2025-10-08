@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J nc_cnn_n64_x1mm_z_0.1_56
+#SBATCH -J nc_ps_n64_x1_z_0.1_12_test2
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=2
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=8
 #SBATCH --gpus-per-task=1
-#SBATCH --mem=128G
+##SBATCH --mem=512G
 #SBATCH --time=03-00:00:00
 #SBATCH --output=/exa/projects/MLS/inigo.saez/logs/output/%x.%j.out
 #SBATCH --error=/exa/projects/MLS/inigo.saez/logs/error/%x.%j.err
@@ -69,7 +69,7 @@ n_threads=1
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n64_mass_1e14_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n64_xlum_0.13_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n64_xlum_0.13_1_5_z_0.1.toml"
-param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n64_xlum_0.13_mm_z_0.1.toml"
+#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_cnn_o_n64_xlum_0.13_mm_z_0.1.toml"
 
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n16_mass_1e14_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n16_xlum_0.13_z_0.1.toml"
@@ -77,7 +77,7 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n32_xlum_0.13_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n32_xlum_0.13_mm_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n64_mass_1e14_z_0.1.toml"
-#param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n64_xlum_0.13_z_0.1.toml"
+param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n64_xlum_0.13_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n64_xlum_0.13_mm_z_0.1.toml"
 #param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_nc_ps_n128_xlum_0.13_z_0.1.toml"
 
@@ -176,7 +176,7 @@ param_file="/home/users/inigo.saez/codes/MLS-CNN/inputs/input_indaco_sobol_lcdm_
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n64_mass_1e14_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n64_xlum_0.13_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n64_xlum_0.13_1_5_z_0.1"
-output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n64_xlum_0.13_mm_z_0.1"
+#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn_o_n64_xlum_0.13_mm_z_0.1"
 
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n16_mass_1e14_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n16_xlum_0.13_z_0.1"
@@ -184,7 +184,7 @@ output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_cnn
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n32_xlum_0.13_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n32_xlum_0.13_mm_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n64_mass_1e14_z_0.1"
-#output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n64_xlum_0.13_z_0.1"
+output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n64_xlum_0.13_z_0.1_tt4"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n64_xlum_0.13_mm_z_0.1"
 #output_dir="/exa/projects/MLS/inigo.saez/trained_models_indaco/sobol_lcdm/nc_ps_n128_xlum_0.13_z_0.1"
 
@@ -239,8 +239,8 @@ mkdir -p logs
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_5.log &
-python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_6.log &
+python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_1.log &
+python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_2.log &
 
 wait
 
