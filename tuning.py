@@ -152,7 +152,7 @@ def objective(
         batch_size=args.train.batch_size,
         drop_last=True,
         shuffle=True,
-        num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
+        num_workers=int(os.environ["SLURM_CPUS_PER_TASK"]) if args.lazy_loading else 0,
         pin_memory=args.lazy_loading,
     )
     dataloader_val = DataLoader(
@@ -160,7 +160,7 @@ def objective(
         batch_size=args.train.batch_size,
         drop_last=False,
         shuffle=False,
-        num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
+        num_workers=int(os.environ["SLURM_CPUS_PER_TASK"]) if args.lazy_loading else 0,
         pin_memory=args.lazy_loading,
     )
 
@@ -263,6 +263,10 @@ def objective(
 
         # Report current loss.
         trial.report(val_loss, epoch)
+
+        if np.isnan(val_loss):
+            print(f"Trial {trial.number}: trial aborted at epoch {epoch} (NaN value).")
+            break
 
         if val_loss < best_loss:
             best_loss = val_loss
