@@ -31,7 +31,7 @@ verbose = true
 # Lazy data loading.
 # If False, read whole dataset from disk at once into memery and send everything to device (CPU/GPU).
 # If True, read data from disk and send to device by batches.
-lazy_loading = false
+lazy_loading = true
 
 pred_moments = false
 
@@ -46,7 +46,7 @@ compile_model = true
 compile_mode = "default"
 
 # Maximum number of epochs.
-n_epochs = 320
+n_epochs = 1000
 
 # Use early stopping.
 early_stopping = true
@@ -207,10 +207,10 @@ compile_mode = "default"
 # Number of trials per process.
 trials = 5
 # Maximum number of epochs for each trial.
-n_epochs = 320
+n_epochs = 1000
 
 # Pruner to be used. Possible values: median, hyperband (see optuna documentation).
-pruner = "hyperband"
+pruner = "median"
 
 # Parameters for median pruner (see optuna documentation).
 median_n_startup_trials = 10
@@ -251,7 +251,7 @@ log = true
 
 [tune.batch_size]
 
-choices = [16, 32, 64]
+choices = [16, 32, 64, 128, 256]
 
 [tune.regressor_fc_layers]
 
