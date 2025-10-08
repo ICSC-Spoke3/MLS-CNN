@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import os
 
 import numpy as np
 import numpy.typing as npt
@@ -813,7 +814,7 @@ def get_dataset_single_probe(
 
     # TODO compute by batches in case the whole dataset does not fit into the memory (RAM and/or GPU)
     # Compute mean and standard deviation of all outputs from training set.
-    dataloader_train = DataLoader(dataset_train, batch_size=len(dataset_train))
+    dataloader_train = DataLoader(dataset_train, batch_size=len(dataset_train), num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0)
 
     # Compute mean and std over all input features.
     mean = next(iter(dataloader_train))[0].mean()

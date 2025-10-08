@@ -1,4 +1,5 @@
 from typing import Callable
+import os
 
 import numpy as np
 import optuna
@@ -146,13 +147,12 @@ def objective(
     torch.manual_seed(0)
 
     # Init. dataloaders.
-    # TODO: use num_workers > 0 when lazy_loading=True -> needs job with multiple cpu processes.
     dataloader_train = DataLoader(
         dataset_train,
         batch_size=args.train.batch_size,
         drop_last=True,
         shuffle=True,
-        num_workers=0,
+        num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
         pin_memory=args.lazy_loading,
     )
     dataloader_val = DataLoader(
@@ -160,7 +160,7 @@ def objective(
         batch_size=args.train.batch_size,
         drop_last=False,
         shuffle=False,
-        num_workers=0,
+        num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
         pin_memory=args.lazy_loading,
     )
 
