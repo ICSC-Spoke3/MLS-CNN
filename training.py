@@ -128,7 +128,10 @@ def do_train(args: Inputs) -> None:
     # Model summary.
     data_sample = next(iter(dataloader_train))[0]
     if args.lazy_loading:
-        data_sample = data_sample.to(device)
+        if isinstance(data_sample, list):
+            data_sample = [elt.to(device, non_blocking=True) for elt in data_sample]
+        else:
+            data_sample = data_sample.to(device, non_blocking=True)
     print(
         summary(
             model,
