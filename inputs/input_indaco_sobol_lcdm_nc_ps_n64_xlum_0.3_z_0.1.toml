@@ -31,7 +31,7 @@ verbose = true
 # Lazy data loading.
 # If False, read whole dataset from disk at once into memery and send everything to device (CPU/GPU).
 # If True, read data from disk and send to device by batches.
-lazy_loading = true
+lazy_loading = false
 
 pred_moments = false
 
@@ -41,7 +41,7 @@ pred_moments = false
 # If true, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the training phase, and not the HP tuning.
 # See below for the HP tuning phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
@@ -134,7 +134,7 @@ density_field_activation = "relu"
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["density_field", "number_counts"]
+probe_list = ["power_spectrum", "number_counts"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_sobol_lcdm"
@@ -145,9 +145,9 @@ data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_s
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_mark_mean_n64_norsd/"
+data_dir = "density_field_n64_norsd/"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [0.13]
+mobs_min = [0.3]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
@@ -164,7 +164,7 @@ overdensity = true
 # Root directory with the data. Different mass cuts and redshifts are in sub-directories.
 data_dir = "power_spectrum_n64_norsd"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [0.13]
+mobs_min = [0.3]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
@@ -178,7 +178,7 @@ redshift = [0.1]
 # Directory with the data relative to data_dir_root. Different redshifts are in sub-directories.
 data_dir = "number_counts"
 # List of minimum mass/luminosity thresholds.
-mobs_min = [0.13, 0.22, 0.36, 0.6, 1]
+mobs_min = [0.3, 0.387, 0.5, 0.646, 0.835, 1.08, 1.39, 1.79, 2.32, 3]
 # Use mass or luminosity cuts.
 # mass: "mass"
 # luminosity: "xlum"
@@ -200,12 +200,12 @@ resume = true
 # If true, compile the model. See https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html
 # This option is only valid for the tuning phase, and not the training phase.
 # See above for the training phase.
-compile_model = true
+compile_model = false
 # Compile mode. See https://docs.pytorch.org/docs/stable/generated/torch.compile.html
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 10
+trials = 50
 # Maximum number of epochs for each trial.
 n_epochs = 1000
 
@@ -251,7 +251,7 @@ log = true
 
 [tune.batch_size]
 
-choices = [16, 32, 64]
+choices = [16, 32, 64, 128]
 
 [tune.regressor_fc_layers]
 
@@ -322,7 +322,7 @@ log = true
 
 [tune.density_field_final_nside]
 
-choices = [2, 4, 8, 16, 32]
+choices = [1, 2, 4, 8, 16, 32]
 
 [tune.density_field_n_conv_per_block]
 

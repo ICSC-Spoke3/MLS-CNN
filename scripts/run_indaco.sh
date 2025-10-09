@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J nc_cnn_n64_x1_z_0.1_34
+#SBATCH -J nc_cnn_n64_x1mm_z_0.1_78
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=2
@@ -239,8 +239,8 @@ mkdir -p logs
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_3.log &
-python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_4.log &
+python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_7.log &
+python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_8.log &
 
 wait
 
