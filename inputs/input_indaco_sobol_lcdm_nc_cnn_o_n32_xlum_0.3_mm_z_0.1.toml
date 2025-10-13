@@ -134,7 +134,7 @@ density_field_activation = "relu"
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["power_spectrum", "number_counts"]
+probe_list = ["density_field", "number_counts"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_sobol_lcdm"
@@ -145,7 +145,7 @@ data_dir_root = "/exa/projects/MLS/inigo.saez/pinocchio_observables/L1500_N750_s
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_n64_norsd/"
+data_dir = "density_field_mark_mean_n32_norsd/"
 # List of minimum mass/luminosity thresholds.
 mobs_min = [0.3]
 # Use mass or luminosity cuts.
@@ -162,7 +162,7 @@ overdensity = true
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
 
 # Root directory with the data. Different mass cuts and redshifts are in sub-directories.
-data_dir = "power_spectrum_n64_norsd_withsn"
+data_dir = "power_spectrum_mark_mean_n32_norsd_withsn"
 # List of minimum mass/luminosity thresholds.
 mobs_min = [0.3]
 # Use mass or luminosity cuts.

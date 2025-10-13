@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A MLS
-#SBATCH -J nc_cnn_n64_x1mm_z_0.1_78
+#SBATCH -J nc_cnn_n32_x1_z_0.1_46
 #SBATCH --partition=a100-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=2
