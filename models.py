@@ -247,7 +247,7 @@ def get_cnn_extractor(
         n_channels_previous = n_channels
 
     # Global average pooling.
-    module.add_module("global_avg_pool", nn.AdaptiveAvgPool3d(1))
+    #module.add_module("global_avg_pool", nn.AdaptiveAvgPool3d(1))
 
     # Flatten.
     module.add_module("flatten", nn.Flatten(start_dim=1))
