@@ -178,6 +178,7 @@ def get_cosmo_models_numbers(
     elif sim_type == "pinocchio_lcdm":
         # First and last model number.
         MODEL_MIN = 1
+        #MODEL_MAX = 1024
         MODEL_MAX = 4096
 
         # Failed models.
@@ -607,83 +608,111 @@ class DensityFieldDataset(BaseDataset):
         return data
 
 
-# class AugmentedDensityFieldDataset(Dataset):
-
-#     def __init__(self, dataset: DensityFieldDataset, n_augment_flip: int) -> None:
-
-#         self.dataset = dataset
-
-#         self.n_augment_flip = n_augment_flip
-
-#     def __len__(self):
-
-#         return len(self.dataset) * (self.n_augment_flip + 1)
-
-#     def __getitem__(self, idx):
-
-#         idx_flip_list_3d = [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
-#         # idx_flip_list_2d = [[], [1], [2], [1, 2]]
-
-#         idx_base = int(idx % len(self.dataset))
-#         idx_flip = int(idx // len(self.dataset))
-
-#         data, label = self.dataset[idx_base]
-
-#         data = torch.flip(data, idx_flip_list_3d[idx_flip])
-
-#         return data, label
-
-
 class AugmentedDensityFieldDataset(Dataset):
 
-    def __init__(self, dataset: DensityFieldDataset, n_augment: int) -> None:
+    def __init__(self, dataset: DensityFieldDataset, n_augment_flip: int, do_flip: bool = True) -> None:
 
         self.dataset = dataset
 
-        self.n_augment = n_augment
+        self.n_augment_flip = n_augment_flip
 
-        if not self.dataset.dataset.lazy_loading:
-            self.data = []
-            for i in range(len(self.dataset) * (self.n_augment + 1)):
-                self.data.append(self.read_data(i).to(device, non_blocking=True))
+        self.do_flip = do_flip
 
     def __len__(self):
 
-        return len(self.dataset) * (self.n_augment + 1)
+        return len(self.dataset) * (self.n_augment_flip + 1)
 
     def __getitem__(self, idx):
 
-        if self.dataset.dataset.lazy_loading:
-            data = self.read_data(idx)
-        else:
-            data = self.data[idx]
+        idx_base = int(idx % len(self.dataset))
 
-        label = self.read_label(idx)
+        data, label = self.dataset[idx_base]
+
+        if self.do_flip:
+
+            idx_flip_list_3d = [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
+            idx_flip = int(idx // len(self.dataset))
+
+            data = torch.flip(data, idx_flip_list_3d[idx_flip])
 
         return data, label
 
-    def read_label(self, idx):
+class AugmentedMultiProbeDataset(Dataset):
 
-        idx_base = int(idx % len(self.dataset))
+    def __init__(self, multiprobe_dataset, n_augment_flip, n_flip_probe_idx) -> None:
 
-        _, label = self.dataset[idx_base]
+        self.multiprobe_dataset = multiprobe_dataset
+        self.n_augment_flip = n_augment_flip
+        self.n_flip_probe_idx = n_flip_probe_idx
 
-        return label
+    def __len__(self):
 
-    def read_data(self, idx):
+        return len(self.multiprobe_dataset) * (self.n_augment_flip + 1)
 
-        idx_base = int(idx % len(self.dataset))
-        idx_augment = int(idx // len(self.dataset))
+    def __getitem__(self, idx):
 
-        if idx_augment > 0:
+        idx_flip_list_3d = [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
 
-            data = self.dataset.dataset.read_data(idx_base, n_augment=idx_augment)
+        idx_base = int(idx % len(self.multiprobe_dataset))
+        idx_flip = int(idx // len(self.multiprobe_dataset))
 
-        else:
+        data_list, label = self.multiprobe_dataset[idx_base]
 
-            data, _ = self.dataset[idx_base]
+        data_list[self.n_flip_probe_idx] = torch.flip(data_list[self.n_flip_probe_idx], idx_flip_list_3d[idx_flip])
 
-        return data
+        return data_list, label
+
+
+#class AugmentedDensityFieldDataset(Dataset):
+#
+#   def __init__(self, dataset: DensityFieldDataset, n_augment: int) -> None:
+#
+#       self.dataset = dataset
+#
+#       self.n_augment = n_augment
+#
+#       if not self.dataset.dataset.lazy_loading:
+#           self.data = []
+#           for i in range(len(self.dataset) * (self.n_augment + 1)):
+#               self.data.append(self.read_data(i).to(device, non_blocking=True))
+#
+#   def __len__(self):
+#
+#       return len(self.dataset) * (self.n_augment + 1)
+#
+#   def __getitem__(self, idx):
+#
+#       if self.dataset.dataset.lazy_loading:
+#           data = self.read_data(idx)
+#       else:
+#           data = self.data[idx]
+#
+#       label = self.read_label(idx)
+#
+#       return data, label
+#
+#   def read_label(self, idx):
+#
+#       idx_base = int(idx % len(self.dataset))
+#
+#       _, label = self.dataset[idx_base]
+#
+#       return label
+#
+#   def read_data(self, idx):
+#
+#       idx_base = int(idx % len(self.dataset))
+#       idx_augment = int(idx // len(self.dataset))
+#
+#       if idx_augment > 0:
+#
+#           data = self.dataset.dataset.read_data(idx_base, n_augment=idx_augment)
+#
+#       else:
+#
+#           data, _ = self.dataset[idx_base]
+#
+#       return data
 
 
 class MultiProbeDataset(Dataset):

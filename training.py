@@ -18,6 +18,7 @@ from data import (
     AugmentedDensityFieldDataset,
     get_dataset_single_probe,
     get_datasets_multiprobe,
+    AugmentedMultiProbeDataset,
 )
 from input_args import Inputs, suggest_args
 
@@ -70,7 +71,9 @@ def do_train(args: Inputs) -> None:
                 dataset_train, args.probes.density_field.n_augment_flip
             )
         else:
-            print("Ignoring data augmentation in multiprobe setup.\n")
+            dataset_train = AugmentedMultiProbeDataset(
+                dataset_train, args.probes.density_field.n_augment_flip, args.probes.probe_list.index("density_field")
+            )
 
     print("Train dataset length: ", len(dataset_train))
     print("Val dataset length: ", len(dataset_val))
