@@ -343,8 +343,8 @@ def suggest_args(
             "batch_size_two_power",
             args.tune.batch_size_two_power.low,
             args.tune.batch_size_two_power.high,
-            step=args.tune.batch_size_two_power.step
-            log=args.tune.batch_size_two_power.log
+            step=args.tune.batch_size_two_power.step,
+            log=args.tune.batch_size_two_power.log,
         )
     if args.tune.dropout.high > args.tune.dropout.low:
         args.train.dropout = trial.suggest_float(
