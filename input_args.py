@@ -88,7 +88,7 @@ class TrainInputs(BaseModel):
     ema: bool
     ema_decay_rate: float = 0.999
 
-    batch_size: int
+    batch_size_two_power: int
 
     learning_rate: float
     weight_decay: float
@@ -219,7 +219,7 @@ class TuneInputs(BaseModel):
     beta_2: HyperParamFloat
     eps: HyperParamFloat
 
-    batch_size: HyperParamCategorical
+    batch_size_two_power: HyperParamInt
 
     regressor_fc_layers: HyperParamInt
     regressor_fc_units_per_layer: HyperParamInt
@@ -338,12 +338,14 @@ def suggest_args(
         )
     else:
         args.train.eps = args.tune.eps.low
-    if len(args.tune.batch_size.choices) > 1:
-        args.train.batch_size = trial.suggest_categorical(
-            "batch_size", args.tune.batch_size.choices
+    if args.tune.batch_size_two_power.high > args.tune.batch_size_two_power.low:
+        args.train.batch_size_two_power = trial.suggest_int(
+            "batch_size_two_power",
+            args.tune.batch_size_two_power.low,
+            args.tune.batch_size_two_power.high,
+            step=args.tune.batch_size_two_power.step
+            log=args.tune.batch_size_two_power.log
         )
-    else:
-        args.train.batch_size = args.tune.batch_size.choices[0]
     if args.tune.dropout.high > args.tune.dropout.low:
         args.train.dropout = trial.suggest_float(
             "dropout",
