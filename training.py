@@ -66,14 +66,15 @@ def do_train(args: Inputs) -> None:
         generator=generator,
     )
     if "density_field" in args.probes.probe_list:
-        if len(args.probes.probe_list) == 1:
-            dataset_train = AugmentedDensityFieldDataset(
-                dataset_train, args.probes.density_field.n_augment_flip
-            )
-        else:
-            dataset_train = AugmentedMultiProbeDataset(
-                dataset_train, args.probes.density_field.n_augment_flip, args.probes.probe_list.index("density_field")
-            )
+        if args.probes.density_field.n_augment_flip > 0:
+            if len(args.probes.probe_list) == 1:
+                dataset_train = AugmentedDensityFieldDataset(
+                    dataset_train, args.probes.density_field.n_augment_flip
+                )
+            else:
+                dataset_train = AugmentedMultiProbeDataset(
+                    dataset_train, args.probes.density_field.n_augment_flip, args.probes.probe_list.index("density_field")
+                )
 
     print("Train dataset length: ", len(dataset_train))
     print("Val dataset length: ", len(dataset_val))
