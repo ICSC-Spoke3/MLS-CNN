@@ -88,7 +88,7 @@ def do_train(args: Inputs) -> None:
     # Init. dataloaders.
     dataloader_train = DataLoader(
         dataset_train,
-        batch_size=args.train.batch_size,
+        batch_size=2**args.train.batch_size_two_power,
         drop_last=True,
         shuffle=True,
         num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
@@ -96,7 +96,7 @@ def do_train(args: Inputs) -> None:
     )
     dataloader_val = DataLoader(
         dataset_val,
-        batch_size=args.train.batch_size,
+        batch_size=2**args.train.batch_size_two_power,
         drop_last=False,
         shuffle=False,
         num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
@@ -104,7 +104,7 @@ def do_train(args: Inputs) -> None:
     )
     dataloader_test = DataLoader(
         dataset_test,
-        batch_size=args.train.batch_size,
+        batch_size=2**args.train.batch_size_two_power,
         drop_last=False,
         shuffle=False,
         num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
@@ -140,7 +140,7 @@ def do_train(args: Inputs) -> None:
         summary(
             model,
             input_data=[data_sample],
-            batch_dim=args.train.batch_size,
+            batch_dim=2**args.train.batch_size_two_power,
             verbose=0,
             col_names=(
                 "input_size",
