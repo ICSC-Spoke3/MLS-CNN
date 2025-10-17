@@ -50,13 +50,11 @@ def do_train(args: Inputs) -> None:
     print(f"-------------------------------")
     # Get full dataset.
     if len(args.probes.probe_list) == 1:
-        dataset, scaler_labels, scaler_data = get_dataset_single_probe(
+        dataset, scaler_labels, _ = get_dataset_single_probe(
             args.probes.probe_list[0], args, verbose=True
         )
     else:
-        dataset, scaler_labels, scaler_data = get_datasets_multiprobe(
-            args, verbose=True
-        )
+        dataset, scaler_labels, _ = get_datasets_multiprobe(args, verbose=True)
     # Split into training, validation, and test datasets.
     fraction_train = 1 - args.fraction_validation - args.fraction_test
     generator = torch.Generator().manual_seed(args.split_seed)

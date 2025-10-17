@@ -851,26 +851,30 @@ def get_dataset_single_probe(
         num_workers=int(os.environ["SLURM_CPUS_PER_TASK"]) if args.lazy_loading else 0,
     )
 
-    # Compute mean and std over all input features.
-    mean = 0
-    meansq = 0
-    for data, _ in dataloader_train:
-        mean += data.mean()
-        meansq += (data**2).mean()
-    std = torch.sqrt(meansq - mean**2)
+    # Init. StandardScaler for labels of training set.
+    scaler_labels = StandardScaler()
+
+    # Loop over data and labels by batches and compute mean and std.
+    data_mean = 0
+    data_meansq = 0
+    for data, labels in dataloader_train:
+        data_mean += data.mean()
+        data_meansq += (data**2).mean()
+        scaler_labels.partial_fit(labels.detach().cpu().numpy())
+    data_std = torch.sqrt(data_meansq - data_mean**2)
 
     # Transform to standardize data.
-    transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - mean) / std)
+    transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - data_mean) / data_std)
 
-    mean = mean.detach().cpu().numpy()
-    std = std.detach().cpu().numpy()
+    data_mean = data_mean.detach().cpu().numpy()
+    data_std = data_std.detach().cpu().numpy()
 
     if verbose:
-        print(f"Standardizing dataset with: mean={mean}, std={std}.")
+        print(f"Standardizing dataset with: mean={data_mean}, std={data_std}.")
 
     # Save dataset scaling for later.
-    mean_array = np.array(mean)
-    scale_array = np.array(std)
+    mean_array = np.array(data_mean)
+    scale_array = np.array(data_std)
     scaling_data = np.vstack((mean_array, scale_array)).T
     filename = f"dataset_standardization_{probe}.dat"
     np.savetxt(
@@ -879,11 +883,7 @@ def get_dataset_single_probe(
         header="Mean Std",
     )
 
-    scaler_data = (float(mean), float(std))
-
-    # Fit StandardScaler to labels of training set.
-    scaler_labels = StandardScaler()
-    scaler_labels.fit(next(iter(dataloader_train))[1].detach().cpu().numpy())
+    scaler_data = (float(data_mean), float(data_std))
 
     if verbose:
         print(
