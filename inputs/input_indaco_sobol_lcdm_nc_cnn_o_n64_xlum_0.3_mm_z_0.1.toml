@@ -94,7 +94,7 @@ swa_lr = 0.0001
 ema = false
 
 # Batch size for the training dataset.
-batch_size = 32
+batch_size_two_power = 5
 
 # Initial learning rate for Adam" optimizer.
 learning_rate = 1e-3
@@ -205,7 +205,7 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 5
+trials = 10
 # Maximum number of epochs for each trial.
 n_epochs = 1000
 
@@ -223,8 +223,8 @@ hyperband_reduction_factor = 3
 
 [tune.learning_rate]
 
-low = 1e-6
-high = 1e-1
+low = 1e-5
+high = 1e-2
 log = true
 
 [tune.weight_decay]
@@ -249,9 +249,11 @@ low = 1e-8
 high = 1e-4
 log = true
 
-[tune.batch_size]
+[tune.batch_size_two_power]
 
-choices = [16, 32, 64, 128]
+low = 6
+high = 11
+step = 1
 
 [tune.regressor_fc_layers]
 
@@ -346,7 +348,7 @@ choices = ["max"]
 [tune.dropout]
 
 low = 0
-high = 0.3
+high = 0.1
 
 [tune.reduce_on_plateau_factor]
 
