@@ -824,7 +824,7 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
 
 def get_dataset_single_probe(
     probe: str, args: Inputs, verbose: bool = True
-) -> tuple[Dataset, StandardScaler, StandardScaler | tuple[float, float]]:
+) -> tuple[Dataset, StandardScaler, StandardScaler]:
 
     # Init. full dataset.
     dataset = get_dataset(probe, args, verbose=True)
@@ -849,32 +849,27 @@ def get_dataset_single_probe(
         dataset_train,
         batch_size=2**args.train.batch_size_two_power,
         num_workers=int(os.environ["SLURM_CPUS_PER_TASK"]) if args.lazy_loading else 0,
+        pin_memory=args.lazy_loading,
     )
 
     # Init. StandardScaler for labels of training set.
+    scaler_data = StandardScaler()
     scaler_labels = StandardScaler()
 
     # Loop over data and labels by batches and compute mean and std.
-    data_mean = 0
-    data_meansq = 0
-    for data, labels in dataloader_train:
-        data_mean += data.mean()
-        data_meansq += (data**2).mean()
+    for _, (data, labels) in enumerate(dataloader_train):
+
+        scaler_data.partial_fit(torch.flatten(data).detach().cpu().numpy().reshape(-1, 1))
         scaler_labels.partial_fit(labels.detach().cpu().numpy())
-    data_std = torch.sqrt(data_meansq - data_mean**2)
-
-    # Transform to standardize data.
-    transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - data_mean) / data_std)
-
-    data_mean = data_mean.detach().cpu().numpy()
-    data_std = data_std.detach().cpu().numpy()
 
     if verbose:
-        print(f"Standardizing dataset with: mean={data_mean}, std={data_std}.")
+        print(
+            f"Standardizing dataset with: mean={scaler_data.mean_}, std={scaler_data.scale_}."
+        )
 
-    # Save dataset scaling for later.
-    mean_array = np.array(data_mean)
-    scale_array = np.array(data_std)
+    # Save data scaling for later.
+    mean_array = np.array(scaler_data.mean_)
+    scale_array = np.array(scaler_data.scale_)
     scaling_data = np.vstack((mean_array, scale_array)).T
     filename = f"dataset_standardization_{probe}.dat"
     np.savetxt(
@@ -883,7 +878,8 @@ def get_dataset_single_probe(
         header="Mean Std",
     )
 
-    scaler_data = (float(data_mean), float(data_std))
+    # Transform to standardize data.
+    transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - scaler_data.mean_[0]) / scaler_data.scale_[0])
 
     if verbose:
         print(
@@ -921,7 +917,7 @@ def get_dataset_single_probe(
 def get_datasets_multiprobe(args: Inputs, verbose: bool = True) -> tuple[
     Dataset,
     StandardScaler,
-    list[StandardScaler | tuple[float, float]],
+    list[StandardScaler],
 ]:
 
     dataset_list = []
