@@ -73,7 +73,9 @@ def do_train(args: Inputs) -> None:
                 )
             else:
                 dataset_train = AugmentedMultiProbeDataset(
-                    dataset_train, args.probes.density_field.n_augment_flip, args.probes.probe_list.index("density_field")
+                    dataset_train,
+                    args.probes.density_field.n_augment_flip,
+                    args.probes.probe_list.index("density_field"),
                 )
 
     print("Train dataset length: ", len(dataset_train))
@@ -91,7 +93,7 @@ def do_train(args: Inputs) -> None:
         batch_size=2**args.train.batch_size_two_power,
         drop_last=True,
         shuffle=True,
-        num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
+        num_workers=int(os.environ["SLURM_CPUS_PER_TASK"]) if args.lazy_loading else 0,
         pin_memory=args.lazy_loading,
     )
     dataloader_val = DataLoader(
@@ -99,7 +101,7 @@ def do_train(args: Inputs) -> None:
         batch_size=2**args.train.batch_size_two_power,
         drop_last=False,
         shuffle=False,
-        num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
+        num_workers=int(os.environ["SLURM_CPUS_PER_TASK"]) if args.lazy_loading else 0,
         pin_memory=args.lazy_loading,
     )
     dataloader_test = DataLoader(
@@ -107,7 +109,7 @@ def do_train(args: Inputs) -> None:
         batch_size=2**args.train.batch_size_two_power,
         drop_last=False,
         shuffle=False,
-        num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0,
+        num_workers=int(os.environ["SLURM_CPUS_PER_TASK"]) if args.lazy_loading else 0,
         pin_memory=args.lazy_loading,
     )
 
@@ -366,7 +368,11 @@ def do_train(args: Inputs) -> None:
     )
 
     # Same for S8 if not in base parameters.
-    if ("S8" not in param_names) and ("Omega_m" in param_names) and ("sigma8" in param_names):
+    if (
+        ("S8" not in param_names)
+        and ("Omega_m" in param_names)
+        and ("sigma8" in param_names)
+    ):
         target_train_S8 = target_train[:, 1] * np.sqrt(target_train[:, 0] / 0.3)
         pred_train_S8 = pred_train[:, 1] * np.sqrt(pred_train[:, 0] / 0.3)
         target_train_S8 = target_train_S8.reshape(-1, 1)
@@ -410,7 +416,11 @@ def do_train(args: Inputs) -> None:
         )
 
     # Same for sigma8 if not in base parameters.
-    if ("sigma8" not in param_names) and ("Omega_m" in param_names) and ("S8" in param_names):
+    if (
+        ("sigma8" not in param_names)
+        and ("Omega_m" in param_names)
+        and ("S8" in param_names)
+    ):
         target_train_sigma8 = target_train[:, 1] / np.sqrt(target_train[:, 0] / 0.3)
         pred_train_sigma8 = pred_train[:, 1] / np.sqrt(pred_train[:, 0] / 0.3)
         target_train_sigma8 = target_train_sigma8.reshape(-1, 1)
@@ -513,7 +523,11 @@ def do_train(args: Inputs) -> None:
         )
 
         # Same for S8 if not in base parameters.
-        if ("S8" not in param_names) and ("Omega_m" in param_names) and ("sigma8" in param_names):
+        if (
+            ("S8" not in param_names)
+            and ("Omega_m" in param_names)
+            and ("sigma8" in param_names)
+        ):
             target_train_S8 = target_train[:, 1] * np.sqrt(target_train[:, 0] / 0.3)
             pred_train_S8 = pred_train[:, 1] * np.sqrt(pred_train[:, 0] / 0.3)
             target_train_S8 = target_train_S8.reshape(-1, 1)
@@ -557,7 +571,11 @@ def do_train(args: Inputs) -> None:
             )
 
         # Same for sigma8 if not in base parameters.
-        if ("sigma8" not in param_names) and ("Omega_m" in param_names) and ("S8" in param_names):
+        if (
+            ("sigma8" not in param_names)
+            and ("Omega_m" in param_names)
+            and ("S8" in param_names)
+        ):
             target_train_sigma8 = target_train[:, 1] / np.sqrt(target_train[:, 0] / 0.3)
             pred_train_sigma8 = pred_train[:, 1] / np.sqrt(pred_train[:, 0] / 0.3)
             target_train_sigma8 = target_train_sigma8.reshape(-1, 1)
@@ -660,7 +678,11 @@ def do_train(args: Inputs) -> None:
         )
 
         # Same for S8 if not in base parameters.
-        if ("S8" not in param_names) and ("Omega_m" in param_names) and ("sigma8" in param_names):
+        if (
+            ("S8" not in param_names)
+            and ("Omega_m" in param_names)
+            and ("sigma8" in param_names)
+        ):
             target_train_S8 = target_train[:, 1] * np.sqrt(target_train[:, 0] / 0.3)
             pred_train_S8 = pred_train[:, 1] * np.sqrt(pred_train[:, 0] / 0.3)
             target_train_S8 = target_train_S8.reshape(-1, 1)
@@ -704,7 +726,11 @@ def do_train(args: Inputs) -> None:
             )
 
         # Same for sigma8 if not in base parameters.
-        if ("sigma8" not in param_names) and ("Omega_m" in param_names) and ("S8" in param_names):
+        if (
+            ("sigma8" not in param_names)
+            and ("Omega_m" in param_names)
+            and ("S8" in param_names)
+        ):
             target_train_sigma8 = target_train[:, 1] / np.sqrt(target_train[:, 0] / 0.3)
             pred_train_sigma8 = pred_train[:, 1] / np.sqrt(pred_train[:, 0] / 0.3)
             target_train_sigma8 = target_train_sigma8.reshape(-1, 1)

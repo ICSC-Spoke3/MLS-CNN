@@ -178,7 +178,6 @@ def get_cosmo_models_numbers(
     elif sim_type == "pinocchio_lcdm":
         # First and last model number.
         MODEL_MIN = 1
-        #MODEL_MAX = 1024
         MODEL_MAX = 4096
 
         # Failed models.
@@ -474,7 +473,7 @@ class PowerSpectrumDataset(BaseDataset):
                 for m in self.mobs_bins:
 
                     if self.kmax is not None:
-                        kcut = (data_read["k"] <= self.kmax)
+                        kcut = data_read["k"] <= self.kmax
                         data_sel = data_read[f"{self.mobs_type}_{m:.2e}"][kcut]
                     else:
                         data_sel = data_read[f"{self.mobs_type}_{m:.2e}"]
@@ -610,7 +609,9 @@ class DensityFieldDataset(BaseDataset):
 
 class AugmentedDensityFieldDataset(Dataset):
 
-    def __init__(self, dataset: DensityFieldDataset, n_augment_flip: int, do_flip: bool = True) -> None:
+    def __init__(
+        self, dataset: DensityFieldDataset, n_augment_flip: int, do_flip: bool = True
+    ) -> None:
 
         self.dataset = dataset
 
@@ -637,6 +638,7 @@ class AugmentedDensityFieldDataset(Dataset):
 
         return data, label
 
+
 class AugmentedMultiProbeDataset(Dataset):
 
     def __init__(self, multiprobe_dataset, n_augment_flip, n_flip_probe_idx) -> None:
@@ -658,12 +660,14 @@ class AugmentedMultiProbeDataset(Dataset):
 
         data_list, label = self.multiprobe_dataset[idx_base]
 
-        data_list[self.n_flip_probe_idx] = torch.flip(data_list[self.n_flip_probe_idx], idx_flip_list_3d[idx_flip])
+        data_list[self.n_flip_probe_idx] = torch.flip(
+            data_list[self.n_flip_probe_idx], idx_flip_list_3d[idx_flip]
+        )
 
         return data_list, label
 
 
-#class AugmentedDensityFieldDataset(Dataset):
+# class AugmentedDensityFieldDataset(Dataset):
 #
 #   def __init__(self, dataset: DensityFieldDataset, n_augment: int) -> None:
 #
@@ -840,13 +844,20 @@ def get_dataset_single_probe(
             dataset_train, args.probes.density_field.n_augment_flip
         )
 
-    # TODO compute by batches in case the whole dataset does not fit into the memory (RAM and/or GPU)
     # Compute mean and standard deviation of all outputs from training set.
-    dataloader_train = DataLoader(dataset_train, batch_size=len(dataset_train), num_workers=int(os.environ['SLURM_CPUS_PER_TASK']) if args.lazy_loading else 0)
+    dataloader_train = DataLoader(
+        dataset_train,
+        batch_size=2**args.train.batch_size_two_power,
+        num_workers=int(os.environ["SLURM_CPUS_PER_TASK"]) if args.lazy_loading else 0,
+    )
 
     # Compute mean and std over all input features.
-    mean = next(iter(dataloader_train))[0].mean()
-    std = next(iter(dataloader_train))[0].std()
+    mean = 0
+    meansq = 0
+    for data, _ in dataloader_train:
+        mean += data.mean()
+        meansq += (data**2).mean()
+    std = torch.sqrt(meansq - mean**2)
 
     # Transform to standardize data.
     transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - mean) / std)

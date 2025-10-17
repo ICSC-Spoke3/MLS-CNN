@@ -95,7 +95,9 @@ def do_tune(args: Inputs) -> None:
                 )
             else:
                 dataset_train = AugmentedMultiProbeDataset(
-                    dataset_train, args.probes.density_field.n_augment_flip, args.probes.probe_list.index("density_field")
+                    dataset_train,
+                    args.probes.density_field.n_augment_flip,
+                    args.probes.probe_list.index("density_field"),
                 )
 
     print("Train dataset length: ", len(dataset_train))
