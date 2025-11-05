@@ -205,7 +205,7 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 1
+trials = 5
 # Maximum number of epochs for each trial.
 n_epochs = 1000
 
@@ -252,7 +252,7 @@ log = true
 [tune.batch_size_two_power]
 
 low = 6
-high = 11
+high = 8
 step = 1
 
 [tune.regressor_fc_layers]

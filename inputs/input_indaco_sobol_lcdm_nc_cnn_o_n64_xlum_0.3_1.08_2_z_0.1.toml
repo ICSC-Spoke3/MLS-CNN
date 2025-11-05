@@ -13,7 +13,7 @@ cosmo_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/models_param
 # If equal to zero, use only the fiducial model.
 # If different from zero, use models from the sobol sequence.
 # Only used if mobs_type="xlum" for at least one of the considered probes.
-xlum_sobol_n_models = 1
+xlum_sobol_n_models = 8
 # File with the values of the X-ray illumination parameters.
 xlum_params_file = "/exa/projects/MLS/inigo.saez/models_parameters/sobol_samples_Nmodels_8samples_6sigma_new.npz"
 
@@ -94,7 +94,7 @@ swa_lr = 0.0001
 ema = false
 
 # Batch size for the training dataset.
-batch_size_two_power = 32
+batch_size_two_power = 5
 
 # Initial learning rate for Adam" optimizer.
 learning_rate = 1e-3
@@ -205,7 +205,7 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 100
+trials = 10
 # Maximum number of epochs for each trial.
 n_epochs = 1000
 
@@ -252,7 +252,7 @@ log = true
 [tune.batch_size_two_power]
 
 low = 6
-high = 11
+high = 9
 step = 1
 
 [tune.regressor_fc_layers]
@@ -318,7 +318,7 @@ choices = [true]
 [tune.density_field_n_channels_first]
 
 low = 1
-high = 10
+high = 20
 step = 1
 log = true
 
