@@ -60,6 +60,7 @@ class TrainInputs(BaseModel):
     compile_mode: str
 
     train_from_tune: bool
+    train_from_tune_trial: int | None = None
     tune_dir: str
     study_name: str
 

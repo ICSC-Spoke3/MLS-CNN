@@ -39,8 +39,11 @@ def do_train(args: Inputs) -> None:
             optuna.storages.journal.JournalFileBackend(f"{tune_dir}/optuna_journal.log")
         )
         study = optuna.load_study(study_name=args.train.study_name, storage=storage)
-        best_trial = study.best_trial
-        args = suggest_args(best_trial, args)
+        if args.train.train_from_tune_trial is not None:
+            trial_train = study.trials[args.train.train_from_tune_trial]
+        else:
+            trial_train = study.best_trial
+        args = suggest_args(trial_train, args)
 
         print("\n-------------------------------\n")
         print(args.model_dump())
