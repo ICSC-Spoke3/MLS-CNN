@@ -69,6 +69,7 @@ mse_loss = true
 # Use training parameters from previous tuning run.
 # If true, the values of the remaining tranining parameters of this section will not be used.
 train_from_tune = true
+train_from_tune_trial = 95
 # Directory with the results of the tuning run. If set to "output_dir" use the same path as output_dir field.
 tune_dir = "output_dir"
 # Name of the optuna study to be used.

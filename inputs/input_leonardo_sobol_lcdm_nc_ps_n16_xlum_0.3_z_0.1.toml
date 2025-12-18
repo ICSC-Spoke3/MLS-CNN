@@ -31,7 +31,7 @@ verbose = true
 # Lazy data loading.
 # If False, read whole dataset from disk at once into memery and send everything to device (CPU/GPU).
 # If True, read data from disk and send to device by batches.
-lazy_loading = true
+lazy_loading = false
 
 pred_moments = false
 
@@ -69,7 +69,6 @@ mse_loss = true
 # Use training parameters from previous tuning run.
 # If true, the values of the remaining tranining parameters of this section will not be used.
 train_from_tune = true
-train_from_tune_trial = 98
 # Directory with the results of the tuning run. If set to "output_dir" use the same path as output_dir field.
 tune_dir = "output_dir"
 # Name of the optuna study to be used.
@@ -95,7 +94,7 @@ swa_lr = 0.0001
 ema = false
 
 # Batch size for the training dataset.
-batch_size_two_power = 6
+batch_size_two_power = 5
 
 # Initial learning rate for Adam" optimizer.
 learning_rate = 1e-3
@@ -135,7 +134,7 @@ density_field_activation = "relu"
 
 # List of probes to be used.
 # Parameters for probes that are not in this list are ignored.
-probe_list = ["power_spectrum", "number_counts", "density_field"]
+probe_list = ["power_spectrum", "number_counts"]
 
 # Root directory relative to which the data directories for each probes are defined.
 data_dir_root = "/leonardo_scratch/fast/IscrC_GraphMLS/isaezcas/data/pinocchio_observables/L1500_N750_sobol_lcdm"
@@ -146,7 +145,7 @@ data_dir_root = "/leonardo_scratch/fast/IscrC_GraphMLS/isaezcas/data/pinocchio_o
 # number of redshifts.
 
 # Directory with the data relative to data_dir_root. Different redshifts and mass/luminosity selections are in sub-directories.
-data_dir = "density_field_n64_norsd/"
+data_dir = "density_field_n16_norsd/"
 # List of minimum mass/luminosity thresholds.
 mobs_min = [0.3]
 # Use mass or luminosity cuts.
@@ -163,7 +162,7 @@ overdensity = true
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.
 
 # Root directory with the data. Different mass cuts and redshifts are in sub-directories.
-data_dir = "power_spectrum_n64_norsd_withsn"
+data_dir = "power_spectrum_n16_norsd_withsn"
 # List of minimum mass/luminosity thresholds.
 mobs_min = [0.3]
 # Use mass or luminosity cuts.
@@ -206,7 +205,7 @@ compile_model = false
 compile_mode = "default"
 
 # Number of trials per process.
-trials = 5
+trials = 25
 # Maximum number of epochs for each trial.
 n_epochs = 1000
 
@@ -253,7 +252,7 @@ log = true
 [tune.batch_size_two_power]
 
 low = 6
-high = 6
+high = 11
 step = 1
 
 [tune.regressor_fc_layers]
@@ -330,7 +329,7 @@ choices = [2]
 [tune.density_field_n_conv_per_block]
 
 low = 1
-high = 1
+high = 2
 step = 1
 log = true
 

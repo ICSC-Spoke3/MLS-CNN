@@ -6,8 +6,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus-per-task=1
 
-##SBATCH --job-name=cnn_n64_x1_z_0.1_9
-#SBATCH --job-name=nc_ps_cnn_n64_x1_z_0.1_10
+#SBATCH --job-name=nc_ps_n64_kf0.27_x1_z_0.1	
 #SBATCH --err=/leonardo_work/IscrC_GraphMLS/isaezcas/logs/error/%x.%j.err
 #SBATCH --out=/leonardo_work/IscrC_GraphMLS/isaezcas/logs/output/%x.%j.out
 #SBATCH --account=IscrC_GraphMLS
@@ -23,11 +22,21 @@ n_threads=1
 ## CNN
 
 #param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_cnn_o_n64_xlum_0.3_z_0.1.toml"
-param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_cnn_o_n64_xlum_0.3_z_0.1.toml"
+#param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_cnn_o_n64_xlum_0.3_z_0.1.toml"
+
+#param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_cnn_o_n32_xlum_0.3_z_0.1.toml"
+#param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_cnn_o_n16_xlum_0.3_z_0.1.toml"
 
 ## PS
 
 #param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_n64_xlum_0.3_z_0.1.toml"
+#param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_n32_xlum_0.3_z_0.1.toml"
+#param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_n16_xlum_0.3_z_0.1.toml"
+
+#param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_n64_kf0.5_xlum_0.3_z_0.1.toml"
+#param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_n64_kf0.33_xlum_0.3_z_0.1.toml"
+param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_n64_kf0.27_xlum_0.3_z_0.1.toml"
+#param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_n64_kf0.25_xlum_0.3_z_0.1.toml"
 
 ## NC
 
@@ -36,11 +45,21 @@ param_file=$WORK_MLS"/codes/MLS-CNN/inputs/input_leonardo_sobol_lcdm_nc_ps_cnn_o
 ## CNN
 
 #output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/cnn_o_n64_xlum_0.3_z_0.1"
-output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_cnn_o_n64_xlum_0.3_z_0.1"
+#output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_cnn_o_n64_xlum_0.3_z_0.1"
+
+#output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_cnn_o_n32_xlum_0.3_z_0.1"
+#output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_cnn_o_n16_xlum_0.3_z_0.1"
 
 ## PS
 
 #output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_n64_xlum_0.3_z_0.1"
+#output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_n32_xlum_0.3_z_0.1"
+#output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_n16_xlum_0.3_z_0.1"
+
+#output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_n64_kf0.5_xlum_0.3_z_0.1"
+#output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_n64_kf0.33_xlum_0.3_z_0.1"
+output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_n64_kf0.27_xlum_0.3_z_0.1"
+#output_dir=$WORK_MLS"/results/trained_models_leonardo/sobol_lcdm/nc_ps_n64_kf0.25_xlum_0.3_z_0.1"
 
 ## NC
 
@@ -54,11 +73,11 @@ cd $WORK_MLS/codes/MLS-CNN
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-uv run python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_10.log
-#uv run python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_6.log &
-#uv run python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_7.log &
-#uv run python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_8.log &
+uv run python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_1.log &
+uv run python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_2.log &
+uv run python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_3.log &
+uv run python $exe_python tune -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/tune_4.log &
 
-#wait
+wait
 
-#uv run python $exe_python train -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/train.log
+uv run python $exe_python train -n $n_threads -f $param_file -o $output_dir &> ${output_dir}/logs/train.log

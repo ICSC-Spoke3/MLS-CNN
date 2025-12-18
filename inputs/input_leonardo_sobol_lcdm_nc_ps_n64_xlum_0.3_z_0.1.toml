@@ -137,7 +137,7 @@ density_field_activation = "relu"
 probe_list = ["power_spectrum", "number_counts"]
 
 # Root directory relative to which the data directories for each probes are defined.
-data_dir_root = "/leonardo_work/IscrC_GraphMLS/isaezcas/data/pinocchio_observables/L1500_N750_sobol_lcdm"
+data_dir_root = "/leonardo_scratch/fast/IscrC_GraphMLS/isaezcas/data/pinocchio_observables/L1500_N750_sobol_lcdm"
 
 [probes.density_field]
 # Different mass/luminosity thresholds and redshifts are combined as different channels.
