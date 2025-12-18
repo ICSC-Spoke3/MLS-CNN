@@ -478,7 +478,7 @@ class PowerSpectrumDataset(BaseDataset):
                     else:
                         data_sel = data_read[f"{self.mobs_type}_{m:.2e}"]
 
-                    data.append(np.log10(data_sel))
+                    data.append(np.log10(1+data_sel))
 
         data = np.ravel(data)
 
