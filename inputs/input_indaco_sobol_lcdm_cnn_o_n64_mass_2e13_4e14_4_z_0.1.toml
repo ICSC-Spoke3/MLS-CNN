@@ -157,7 +157,7 @@ redshift = [0.1]
 
 overdensity = true
 
-n_augment_flip = 0
+n_augment = 0
 
 [probes.power_spectrum]
 # Power spectrum from different mass thresholds and redshifts are concatenated into a single 1D array.

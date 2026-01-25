@@ -153,7 +153,7 @@ class DensityFieldInputs(BaseModel):
     redshift: list[float]
 
     overdensity: bool = False
-    n_augment_flip: int = 0
+    n_augment: int = 0
 
 
 class ProbesInputs(BaseModel):

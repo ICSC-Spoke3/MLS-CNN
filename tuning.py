@@ -88,15 +88,15 @@ def do_tune(args: Inputs) -> None:
         generator=generator,
     )
     if "density_field" in args.probes.probe_list:
-        if args.probes.density_field.n_augment_flip > 0:
+        if args.probes.density_field.n_augment > 0:
             if len(args.probes.probe_list) == 1:
                 dataset_train = AugmentedDensityFieldDataset(
-                    dataset_train, args.probes.density_field.n_augment_flip
+                    dataset_train, args.probes.density_field.n_augment
                 )
             else:
                 dataset_train = AugmentedMultiProbeDataset(
                     dataset_train,
-                    args.probes.density_field.n_augment_flip,
+                    args.probes.density_field.n_augment,
                     args.probes.probe_list.index("density_field"),
                 )
 

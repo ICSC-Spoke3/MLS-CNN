@@ -724,7 +724,7 @@ def get_dataset_single_probe(
     # Augment dataset for CNN.
     if probe == "density_field":
         dataset_train = AugmentedDensityFieldDataset(
-            dataset_train, args.probes.density_field.n_augment_flip
+            dataset_train, args.probes.density_field.n_augment
         )
 
     # Compute mean and standard deviation of all outputs from training set.

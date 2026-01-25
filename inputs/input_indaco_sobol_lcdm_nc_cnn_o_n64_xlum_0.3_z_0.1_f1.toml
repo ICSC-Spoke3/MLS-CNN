@@ -155,7 +155,7 @@ mobs_type = "xlum"
 # List of redshifts (snapshots).
 redshift = [0.1]
 
-n_augment_flip = 1
+n_augment = 1
 overdensity = true
 
 [probes.power_spectrum]
