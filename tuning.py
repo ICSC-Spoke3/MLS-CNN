@@ -1,29 +1,27 @@
-from typing import Callable
 import os
+from typing import Callable
 
 import numpy as np
 import optuna
-import torch
 from optuna.trial import TrialState
 from rich import print
+import torch
 from torch.amp import GradScaler
 from torch.utils.data import DataLoader, Dataset, random_split
 
-import models as models
 from data import (
     AugmentedDensityFieldDataset,
-    AugmentedMultiProbeDataset,
     get_dataset_single_probe,
     get_datasets_multiprobe,
 )
 from input_args import Inputs, suggest_args
+import models as models
 from training import train_loop, validation_loop
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def do_tune(args: Inputs) -> None:
-
     storage = optuna.storages.JournalStorage(
         optuna.storages.journal.JournalFileBackend(
             f"{args.output_dir}/optuna_journal.log"
@@ -47,7 +45,6 @@ def do_tune(args: Inputs) -> None:
             )
 
     elif args.tune.pruner == "median":
-
         if args.verbose:
             print("Using median pruner.")
 
@@ -71,7 +68,7 @@ def do_tune(args: Inputs) -> None:
     )
 
     # Get training, validation, and test datasets.
-    print(f"-------------------------------")
+    print("-------------------------------")
     # Get full dataset.
     if len(args.probes.probe_list) == 1:
         dataset, _, _ = get_dataset_single_probe(
@@ -94,15 +91,11 @@ def do_tune(args: Inputs) -> None:
                     dataset_train, args.probes.density_field.n_augment
                 )
             else:
-                dataset_train = AugmentedMultiProbeDataset(
-                    dataset_train,
-                    args.probes.density_field.n_augment,
-                    args.probes.probe_list.index("density_field"),
-                )
+                raise ValueError("Data augmentation not compatible with multiprobe.")
 
     print("Train dataset length: ", len(dataset_train))
     print("Val dataset length: ", len(dataset_val))
-    print(f"-------------------------------\n")
+    print("-------------------------------\n")
 
     objective_func = get_objective_func(args, dataset_train, dataset_val)
     study.optimize(
@@ -131,9 +124,7 @@ def do_tune(args: Inputs) -> None:
 def get_objective_func(
     args: Inputs, dataset_train: Dataset, dataset_val: Dataset
 ) -> Callable[[optuna.trial.Trial], float]:
-
     def objective_func(trial: optuna.trial.Trial) -> float:
-
         return objective(trial, args, dataset_train, dataset_val)
 
     return objective_func
@@ -145,7 +136,6 @@ def objective(
     dataset_train: Dataset,
     dataset_val: Dataset,
 ) -> float:
-
     args = suggest_args(trial, args)
 
     # Set torch seed to try getting reproducible results.
@@ -238,7 +228,6 @@ def objective(
 
     # Loop over epochs.
     for epoch in range(args.tune.n_epochs):
-
         _ = train_loop(
             dataloader_train,
             model,

@@ -3,33 +3,30 @@ import os
 import numpy as np
 import numpy.typing as npt
 import optuna
-import torch
 from rich import print
 from sklearn.preprocessing import StandardScaler
+import torch
 from torch import nn
 from torch.amp import GradScaler, autocast
-from torch.optim.swa_utils import SWALR, AveragedModel
+from torch.optim.swa_utils import AveragedModel, SWALR
 from torch.utils.data import DataLoader, random_split
 from torchinfo import summary
 
-import models as models
-import plot as plot
 from data import (
     AugmentedDensityFieldDataset,
     get_dataset_single_probe,
     get_datasets_multiprobe,
-    AugmentedMultiProbeDataset,
 )
 from input_args import Inputs, suggest_args
+import models as models
+import plot as plot
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def do_train(args: Inputs) -> None:
-
     # Load best parameters from previous tuning run.
     if args.train.train_from_tune:
-
         print("Using parameters from previous tuning run:")
         if args.train.tune_dir == "output_dir":
             tune_dir = args.output_dir
@@ -50,7 +47,7 @@ def do_train(args: Inputs) -> None:
         print("\n-------------------------------\n")
 
     # Get training, validation, and test datasets.
-    print(f"-------------------------------")
+    print("-------------------------------")
     # Get full dataset.
     if len(args.probes.probe_list) == 1:
         dataset, scaler_labels, _ = get_dataset_single_probe(
@@ -73,16 +70,12 @@ def do_train(args: Inputs) -> None:
                     dataset_train, args.probes.density_field.n_augment
                 )
             else:
-                dataset_train = AugmentedMultiProbeDataset(
-                    dataset_train,
-                    args.probes.density_field.n_augment,
-                    args.probes.probe_list.index("density_field"),
-                )
+                raise ValueError("Data augmentation not compatible with multiprobe.")
 
     print("Train dataset length: ", len(dataset_train))
     print("Val dataset length: ", len(dataset_val))
     print("Test dataset length: ", len(dataset_test))
-    print(f"-------------------------------\n")
+    print("-------------------------------\n")
 
     # Set torch seed to try getting reproducible results.
     # Set it at the same stage as in the tuning module.
@@ -271,7 +264,6 @@ def do_train(args: Inputs) -> None:
 
     # Load SWA model.
     if args.train.swa:
-
         swa_model.load_state_dict(
             torch.load(
                 f"{args.output_dir}/swa_model.pth",
@@ -282,7 +274,6 @@ def do_train(args: Inputs) -> None:
 
     # Load EMA model.
     if args.train.ema:
-
         ema_model.load_state_dict(
             torch.load(
                 f"{args.output_dir}/ema_model.pth",
@@ -797,7 +788,6 @@ def train_loop(
     gauss_nllloss=False,
     mse_loss=False,
 ) -> float:
-
     assert dataloader.batch_size is not None
 
     num_batches = len(dataloader)
@@ -807,7 +797,6 @@ def train_loop(
     model.train()
 
     for _, (X, y) in enumerate(dataloader):
-
         if send_to_device:
             if isinstance(X, list):
                 X = [elt.to(device, non_blocking=True) for elt in X]
@@ -818,23 +807,19 @@ def train_loop(
         optimizer.zero_grad(set_to_none=True)
 
         with autocast(device_type=device):
-
             pred = model(X)
 
             if pred_moments:
-
                 n_pred = int(pred.shape[1] / 2)
                 pred_means = pred[:, :n_pred]
                 pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
 
             else:
-
                 pred_means = pred
 
             del pred
 
             if gauss_nllloss:
-
                 if not pred_moments:
                     raise ValueError(
                         "GaussianNLLLoss is incompatible with pred_moments=False."
@@ -847,20 +832,17 @@ def train_loop(
                 del pred_vars
 
             elif mse_loss:
-
                 loss_fn = nn.MSELoss()
                 loss = loss_fn(pred_means, y)
 
                 del pred_means
 
             else:
-
                 loss_mean = torch.sum(
                     torch.log(torch.mean((pred_means - y) ** 2, dim=0)), dim=0
                 )
 
                 if pred_moments:
-
                     loss_var = torch.sum(
                         torch.log(
                             torch.mean(((pred_means - y) ** 2 - pred_vars) ** 2, dim=0)
@@ -890,7 +872,6 @@ def train_loop(
                     )
 
                 else:
-
                     loss_var = 0
                     loss_skew = 0
                     loss_kurt = 0
@@ -924,7 +905,6 @@ def validation_loop(
     gauss_nllloss=False,
     mse_loss=False,
 ) -> float:
-
     num_batches = len(dataloader)
 
     val_loss = 0
@@ -932,9 +912,7 @@ def validation_loop(
     model.eval()
 
     with torch.no_grad():
-
         for X, y in dataloader:
-
             if send_to_device:
                 if isinstance(X, list):
                     X = [elt.to(device, non_blocking=True) for elt in X]
@@ -945,19 +923,16 @@ def validation_loop(
             pred = model(X)
 
             if pred_moments:
-
                 n_pred = int(pred.shape[1] / 2)
                 pred_means = pred[:, :n_pred]
                 pred_vars = torch.exp(pred[:, n_pred : 2 * n_pred])
 
             else:
-
                 pred_means = pred
 
             del pred
 
             if gauss_nllloss:
-
                 if not pred_moments:
                     raise ValueError(
                         "GaussianNLLLoss is incompatible with pred_moments=False."
@@ -970,20 +945,17 @@ def validation_loop(
                 del pred_vars
 
             elif mse_loss:
-
                 loss_fn = nn.MSELoss()
                 loss = loss_fn(pred_means, y)
 
                 del pred_means
 
             else:
-
                 loss_mean = torch.sum(
                     torch.log(torch.mean((pred_means - y) ** 2, dim=0)), dim=0
                 )
 
                 if pred_moments:
-
                     loss_var = torch.sum(
                         torch.log(
                             torch.mean(((pred_means - y) ** 2 - pred_vars) ** 2, dim=0)
@@ -1013,7 +985,6 @@ def validation_loop(
                     )
 
                 else:
-
                     loss_var = 0
                     loss_skew = 0
                     loss_kurt = 0
@@ -1058,16 +1029,14 @@ def training(
     ema_model: None | torch.optim.swa_utils.AveragedModel = None,
     verbose: bool = True,
 ) -> tuple[list[float], list[float]]:
-
     best_loss = 1e10
     best_epoch = -1
     val_history = []
     train_history = []
 
     for t in range(epochs):
-
         if verbose:
-            print(f"Epoch {t+1}\n-------------------------------")
+            print(f"Epoch {t + 1}\n-------------------------------")
 
             print(f"LR: {scheduler.get_last_lr()}")
 
@@ -1116,21 +1085,20 @@ def training(
             if verbose:
                 print(f"Current epoch training loss: {train_loss}")
                 print(f"Current epoch validation loss: {val_loss}")
-                print(f"Best validation loss: {best_loss} (epoch {best_epoch+1})")
-                print(f"-------------------------------\n")
-                print(f"Early stopped training at epoch {t+1}")
-                print(f"Best validation loss: {best_loss} (epoch {best_epoch+1})")
-                print(f"-------------------------------\n")
+                print(f"Best validation loss: {best_loss} (epoch {best_epoch + 1})")
+                print("-------------------------------\n")
+                print(f"Early stopped training at epoch {t + 1}")
+                print(f"Best validation loss: {best_loss} (epoch {best_epoch + 1})")
+                print("-------------------------------\n")
             break
 
         if verbose:
             print(f"Current epoch training loss: {train_loss}")
             print(f"Current epoch validation loss: {val_loss}")
-            print(f"Best validation loss: {best_loss} (epoch {best_epoch+1})")
-            print(f"-------------------------------\n")
+            print(f"Best validation loss: {best_loss} (epoch {best_epoch + 1})")
+            print("-------------------------------\n")
 
     if ema:
-
         assert ema_model is not None
 
         # Update batch_norm statistics for the ema_model at the end.
@@ -1149,21 +1117,19 @@ def training(
         )
         if verbose:
             print(f"Final validation loss for EMA model: {val_loss_ema}.")
-            print(f"-------------------------------\n")
+            print("-------------------------------\n")
 
         checkpoint(ema_model, f"{output}/ema_model.pth")
 
     if swa:
-
         assert swa_model is not None
         assert swa_scheduler is not None
 
         print("---------- Stochastic Weight Averaging ----------\n")
 
         for t in range(swa_n_epochs):
-
             if verbose:
-                print(f"Epoch {t+1}\n-------------------------------")
+                print(f"Epoch {t + 1}\n-------------------------------")
 
                 print(f"LR: {swa_scheduler.get_last_lr()}")
 
@@ -1193,7 +1159,7 @@ def training(
             if verbose:
                 print(f"Current epoch training loss: {train_loss}")
                 print(f"Current epoch validation loss: {val_loss}")
-                print(f"-------------------------------\n")
+                print("-------------------------------\n")
 
             swa_model.update_parameters(model)
             swa_scheduler.step()
@@ -1232,16 +1198,13 @@ def eval_model(
     output_dir: str,
     send_to_device: bool = True,
 ) -> tuple[npt.NDArray, npt.NDArray]:
-
     pred = []
     target = []
 
     model.eval()
 
     with torch.no_grad():
-
         for X, y in dataloader:
-
             target.append(y.detach().cpu().numpy())
 
             if send_to_device:
