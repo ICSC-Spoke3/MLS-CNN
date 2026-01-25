@@ -25,7 +25,6 @@ def get_params_cosmo_xlum(
     xlum_params_file: str,
     sim_type: _SIM_TYPES,
 ) -> npt.NDArray:
-
     # Number of cosmo models.
     n_models_cosmo = cosmo_models.shape[0]
     # Total number of models.
@@ -51,12 +50,10 @@ def get_params_cosmo_xlum(
     xlum_params = []
 
     if xlum_params_file == "fiducial":
-
         for m in cosmo_models:
             xlum_params.append(_BA_FIDUCIAL.reshape(1, -1))
 
     else:
-
         # Read xlum params file.
         xlum_params_dict = np.load(xlum_params_file)
 
@@ -86,11 +83,9 @@ def read_cosmo_params(
     model_numbers: npt.NDArray,
     sim_type: _SIM_TYPES = "pinocchio",
 ) -> npt.NDArray:
-
     cosmo_params = np.zeros((model_numbers.shape[0], len(params_names)))
 
     if sim_type in ["pinocchio", "pinocchio_lcdm", "pinocchio_fiducial"]:
-
         params_idx_pinocchio = {
             "Omega_m": 0,
             "sigma8": 1,
@@ -116,7 +111,6 @@ def read_cosmo_params(
                 cosmo_params[:, i] = data[model_numbers - 1, params_idx_pinocchio[name]]
 
     elif sim_type == "abacus":
-
         df = read_csv(cosmo_params_file)
 
         params_dict_cosmo_file = {
@@ -126,11 +120,9 @@ def read_cosmo_params(
         }
 
         for j, m in enumerate(model_numbers):
-
             metadata = get_meta(f"AbacusSummit_base_c{m:03}_ph000")
 
             for i, name in enumerate(params_names):
-
                 if name == "Omega_m":
                     cosmo_params[j, i] = metadata["Omega_M"]
 
@@ -162,7 +154,6 @@ def get_cosmo_models_numbers(
     seed: int | None = None,
     sim_type: _SIM_TYPES = "pinocchio",
 ) -> npt.NDArray:
-
     if sim_type == "pinocchio":
         # First and last model number.
         MODEL_MIN = 1
@@ -188,7 +179,6 @@ def get_cosmo_models_numbers(
         models = models[~np.isin(models, FAILED_MODELS)]
 
     elif sim_type == "pinocchio_fiducial":
-
         # Number of sims.
         n_sims = 1000
 
@@ -239,7 +229,6 @@ class BaseDataset(ABC, Dataset):
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
-
         self.sim_type = sim_type
 
         self.data_dir = data_dir
@@ -261,7 +250,6 @@ class BaseDataset(ABC, Dataset):
 
         # Labels are cosmo params + xlum params.
         if mobs_type == "xlum" and self.xlum_sobol_n_models > 0:
-
             self.xlum_sobol = True
 
             if xlum_params_file is None:
@@ -277,7 +265,6 @@ class BaseDataset(ABC, Dataset):
 
         # Labels are cosmo params + fiducial xlum params.
         elif mobs_type == "xlum" and self.xlum_sobol_n_models == 0:
-
             self.xlum_sobol = False
 
             self.labels = get_params_cosmo_xlum(
@@ -286,7 +273,6 @@ class BaseDataset(ABC, Dataset):
 
         # No xlum parameters in the labels.
         else:
-
             self.xlum_sobol = False
 
             self.labels = cosmo_params
@@ -304,11 +290,9 @@ class BaseDataset(ABC, Dataset):
                 self.data.append(self.read_data(i).to(device, non_blocking=True))
 
     def __len__(self):
-
         return len(self.labels)
 
     def __getitem__(self, idx):
-
         if self.lazy_loading:
             data = self.read_data(idx)
         else:
@@ -324,7 +308,6 @@ class BaseDataset(ABC, Dataset):
 
 
 class NumberCountsDataset(BaseDataset):
-
     def __init__(
         self,
         cosmo_params_file: str,
@@ -343,7 +326,6 @@ class NumberCountsDataset(BaseDataset):
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
-
         if not cumulative:
             raise NotImplementedError(
                 "differential mass bins for number counts not yet implemented."
@@ -367,7 +349,6 @@ class NumberCountsDataset(BaseDataset):
         )
 
     def read_data(self, idx):
-
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
             xm_idx = idx % self.xlum_sobol_n_models
@@ -380,7 +361,7 @@ class NumberCountsDataset(BaseDataset):
             filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.number_counts.dat"
         elif self.sim_type == "pinocchio_fiducial":
             filename = (
-                f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.number_counts.dat"
+                f"pinocchio.model00001_{idx + 10001:05}{xm_suffix}.number_counts.dat"
             )
         elif self.sim_type == "abacus":
             filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.number_counts.dat"
@@ -388,7 +369,6 @@ class NumberCountsDataset(BaseDataset):
         data = []
 
         for z in self.redshift:
-
             data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{filename}"
 
             data_tmp = np.genfromtxt(data_path)
@@ -404,7 +384,6 @@ class NumberCountsDataset(BaseDataset):
 
 
 class PowerSpectrumDataset(BaseDataset):
-
     def __init__(
         self,
         cosmo_params_file: str,
@@ -423,7 +402,6 @@ class PowerSpectrumDataset(BaseDataset):
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
-
         self.kmax = kmax
 
         super(PowerSpectrumDataset, self).__init__(
@@ -444,7 +422,6 @@ class PowerSpectrumDataset(BaseDataset):
         )
 
     def read_data(self, idx):
-
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
             xm_idx = idx % self.xlum_sobol_n_models
@@ -457,7 +434,7 @@ class PowerSpectrumDataset(BaseDataset):
             filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.power_spectrum.npz"
         elif self.sim_type == "pinocchio_fiducial":
             filename = (
-                f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.power_spectrum.npz"
+                f"pinocchio.model00001_{idx + 10001:05}{xm_suffix}.power_spectrum.npz"
             )
         elif self.sim_type == "abacus":
             filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.power_spectrum.npz"
@@ -465,20 +442,17 @@ class PowerSpectrumDataset(BaseDataset):
         data = []
 
         for z in self.redshift:
-
             data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{filename}"
 
             with np.load(data_path) as data_read:
-
                 for m in self.mobs_bins:
-
                     if self.kmax is not None:
                         kcut = data_read["k"] <= self.kmax
                         data_sel = data_read[f"{self.mobs_type}_{m:.2e}"][kcut]
                     else:
                         data_sel = data_read[f"{self.mobs_type}_{m:.2e}"]
 
-                    data.append(np.log10(1+data_sel))
+                    data.append(np.log10(1 + data_sel))
 
         data = np.ravel(data)
 
@@ -488,7 +462,6 @@ class PowerSpectrumDataset(BaseDataset):
 
 
 class DensityFieldDataset(BaseDataset):
-
     def __init__(
         self,
         cosmo_params_file: str,
@@ -507,7 +480,6 @@ class DensityFieldDataset(BaseDataset):
         lazy_loading: bool = False,
         sim_type: _SIM_TYPES = "pinocchio",
     ) -> None:
-
         self.overdensity = overdensity
 
         super(DensityFieldDataset, self).__init__(
@@ -528,7 +500,6 @@ class DensityFieldDataset(BaseDataset):
         )
 
     def read_data(self, idx, n_augment=0):
-
         if self.xlum_sobol:
             cm_idx = idx // self.xlum_sobol_n_models
             xm_idx = idx % self.xlum_sobol_n_models
@@ -538,54 +509,44 @@ class DensityFieldDataset(BaseDataset):
             xm_suffix = ""
 
         if n_augment > 0:
-
             n_augment_str = f".augmented_{n_augment:03}"
         else:
-
             n_augment_str = ""
 
         if self.sim_type == "pinocchio" or self.sim_type == "pinocchio_lcdm":
             filename = f"pinocchio.model{self.cosmo_models[cm_idx]:05}_{self.cosmo_models[cm_idx]:05}{xm_suffix}.density_field{n_augment_str}.npz"
         elif self.sim_type == "pinocchio_fiducial":
-            filename = f"pinocchio.model00001_{idx+10001:05}{xm_suffix}.density_field{n_augment_str}.npz"
+            filename = f"pinocchio.model00001_{idx + 10001:05}{xm_suffix}.density_field{n_augment_str}.npz"
         elif self.sim_type == "abacus":
             filename = f"abacus.model{self.cosmo_models[cm_idx]:05}_00000{xm_suffix}.density_field{n_augment_str}.npz"
 
         data = []
 
         for z in self.redshift:
-
             data_path = f"{self.data_dir}/{self.mobs_type}/z_{z:.4f}/{filename}"
 
             with np.load(data_path) as data_read:
-
                 for m in self.mobs_bins:
-
                     data_tmp = data_read[f"{self.mobs_type}_{m:.2e}"]
 
                     if self.overdensity:
-
                         mean = np.mean(data_tmp)
 
                         if mean != 0:
-
                             data_tmp /= mean
                             data_tmp -= 1
 
                     else:
-
                         data_tmp = np.log10(1 + data_tmp)
 
                     ndim = data_tmp.ndim
 
                     if ndim == 2:
-
                         data_tmp = data_tmp.reshape(
                             (1, data_tmp.shape[0], data_tmp.shape[1])
                         )
 
                     elif ndim == 3:
-
                         data_tmp = data_tmp.reshape(
                             (
                                 1,
@@ -608,134 +569,61 @@ class DensityFieldDataset(BaseDataset):
 
 
 class AugmentedDensityFieldDataset(Dataset):
-
-    def __init__(
-        self, dataset: DensityFieldDataset, n_augment_flip: int, do_flip: bool = True
-    ) -> None:
-
+    def __init__(self, dataset: DensityFieldDataset, n_augment: int) -> None:
         self.dataset = dataset
 
-        self.n_augment_flip = n_augment_flip
+        self.n_augment = n_augment
 
-        self.do_flip = do_flip
+        if not self.dataset.dataset.lazy_loading:
+            self.data = []
+            for i in range(len(self.dataset) * (self.n_augment + 1)):
+                self.data.append(self.read_data(i).to(device, non_blocking=True))
 
     def __len__(self):
-
-        return len(self.dataset) * (self.n_augment_flip + 1)
+        return len(self.dataset) * (self.n_augment + 1)
 
     def __getitem__(self, idx):
+        if self.dataset.dataset.lazy_loading:
+            data = self.read_data(idx)
+        else:
+            data = self.data[idx]
 
-        idx_base = int(idx % len(self.dataset))
-
-        data, label = self.dataset[idx_base]
-
-        if self.do_flip:
-
-            idx_flip_list_3d = [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
-            idx_flip = int(idx // len(self.dataset))
-
-            data = torch.flip(data, idx_flip_list_3d[idx_flip])
+        label = self.read_label(idx)
 
         return data, label
 
+    def read_label(self, idx):
+        idx_base = int(idx % len(self.dataset))
 
-class AugmentedMultiProbeDataset(Dataset):
+        _, label = self.dataset[idx_base]
 
-    def __init__(self, multiprobe_dataset, n_augment_flip, n_flip_probe_idx) -> None:
+        return label
 
-        self.multiprobe_dataset = multiprobe_dataset
-        self.n_augment_flip = n_augment_flip
-        self.n_flip_probe_idx = n_flip_probe_idx
+    
+        idx_base = int(idx % len(self.dataset))
+        idx_augment = int(idx // len(self.dataset))
 
-    def __len__(self):
+        if idx_augment > 0:
+            data = self.dataset.dataset.read_data(idx_base, n_augment=idx_augment)
 
-        return len(self.multiprobe_dataset) * (self.n_augment_flip + 1)
+        else:
+            data, _ = self.dataset[idx_base]
 
-    def __getitem__(self, idx):
-
-        idx_flip_list_3d = [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
-
-        idx_base = int(idx % len(self.multiprobe_dataset))
-        idx_flip = int(idx // len(self.multiprobe_dataset))
-
-        data_list, label = self.multiprobe_dataset[idx_base]
-
-        data_list[self.n_flip_probe_idx] = torch.flip(
-            data_list[self.n_flip_probe_idx], idx_flip_list_3d[idx_flip]
-        )
-
-        return data_list, label
-
-
-# class AugmentedDensityFieldDataset(Dataset):
-#
-#   def __init__(self, dataset: DensityFieldDataset, n_augment: int) -> None:
-#
-#       self.dataset = dataset
-#
-#       self.n_augment = n_augment
-#
-#       if not self.dataset.dataset.lazy_loading:
-#           self.data = []
-#           for i in range(len(self.dataset) * (self.n_augment + 1)):
-#               self.data.append(self.read_data(i).to(device, non_blocking=True))
-#
-#   def __len__(self):
-#
-#       return len(self.dataset) * (self.n_augment + 1)
-#
-#   def __getitem__(self, idx):
-#
-#       if self.dataset.dataset.lazy_loading:
-#           data = self.read_data(idx)
-#       else:
-#           data = self.data[idx]
-#
-#       label = self.read_label(idx)
-#
-#       return data, label
-#
-#   def read_label(self, idx):
-#
-#       idx_base = int(idx % len(self.dataset))
-#
-#       _, label = self.dataset[idx_base]
-#
-#       return label
-#
-#   def read_data(self, idx):
-#
-#       idx_base = int(idx % len(self.dataset))
-#       idx_augment = int(idx // len(self.dataset))
-#
-#       if idx_augment > 0:
-#
-#           data = self.dataset.dataset.read_data(idx_base, n_augment=idx_augment)
-#
-#       else:
-#
-#           data, _ = self.dataset[idx_base]
-#
-#       return data
+        return data
 
 
 class MultiProbeDataset(Dataset):
-
     def __init__(self, dataset_list: list[BaseDataset]) -> None:
-
         self.dataset_list = dataset_list
         self.labels = self.dataset_list[0].labels
 
     def __len__(self):
-
         return len(self.labels)
 
     def __getitem__(self, idx):
-
         data_list = []
 
         for dataset in self.dataset_list:
-
             data_list.append(dataset[idx][0])
 
         label = self.labels[idx]
@@ -744,9 +632,7 @@ class MultiProbeDataset(Dataset):
 
 
 def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dataset:
-
     if probe == "density_field":
-
         data_dir = f"{args.probes.data_dir_root}/{args.probes.density_field.data_dir}"
 
         if verbose:
@@ -770,7 +656,6 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
         )
 
     elif probe == "power_spectrum":
-
         data_dir = f"{args.probes.data_dir_root}/{args.probes.power_spectrum.data_dir}"
 
         if verbose:
@@ -794,7 +679,6 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
         )
 
     elif probe == "number_counts":
-
         data_dir = f"{args.probes.data_dir_root}/{args.probes.number_counts.data_dir}"
 
         if verbose:
@@ -825,7 +709,6 @@ def get_dataset(probe: str, args: Inputs, verbose: bool = True, **kwargs) -> Dat
 def get_dataset_single_probe(
     probe: str, args: Inputs, verbose: bool = True
 ) -> tuple[Dataset, StandardScaler, StandardScaler]:
-
     # Init. full dataset.
     dataset = get_dataset(probe, args, verbose=True)
 
@@ -858,8 +741,9 @@ def get_dataset_single_probe(
 
     # Loop over data and labels by batches and compute mean and std.
     for _, (data, labels) in enumerate(dataloader_train):
-
-        scaler_data.partial_fit(torch.flatten(data).detach().cpu().numpy().reshape(-1, 1))
+        scaler_data.partial_fit(
+            torch.flatten(data).detach().cpu().numpy().reshape(-1, 1)
+        )
         scaler_labels.partial_fit(labels.detach().cpu().numpy())
 
     if verbose:
@@ -879,7 +763,9 @@ def get_dataset_single_probe(
     )
 
     # Transform to standardize data.
-    transform_normalize = Lambda(lambda x: (torch.from_numpy(x) - scaler_data.mean_[0]) / scaler_data.scale_[0])
+    transform_normalize = Lambda(
+        lambda x: (torch.from_numpy(x) - scaler_data.mean_[0]) / scaler_data.scale_[0]
+    )
 
     if verbose:
         print(
@@ -914,17 +800,17 @@ def get_dataset_single_probe(
     return dataset, scaler_labels, scaler_data
 
 
-def get_datasets_multiprobe(args: Inputs, verbose: bool = True) -> tuple[
+def get_datasets_multiprobe(
+    args: Inputs, verbose: bool = True
+) -> tuple[
     Dataset,
     StandardScaler,
     list[StandardScaler],
 ]:
-
     dataset_list = []
     scaler_data_list = []
 
     for probe in args.probes.probe_list:
-
         dataset, scaler_labels, scaler_data = get_dataset_single_probe(
             probe, args, verbose
         )
