@@ -334,6 +334,14 @@ def get_cnn_extractor_residual(
                 bias=use_bias,
             ),
         )
+        module.add_module(
+            f"batch_norm_{i+1}_initial",
+            batch_norm_layer(n_channels)
+        )
+        module.add_module(
+            f"activaion_{i+1}_initial",
+            activation()
+        )
 
         module.add_module(
             f"ResConvBlock_{i + 1}",
