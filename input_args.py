@@ -8,7 +8,6 @@ _SIM_TYPES = Literal["pinocchio", "abacus", "pinocchio_lcdm", "pinocchio_fiducia
 
 
 def get_cli_args():
-
     parser = argparse.ArgumentParser(
         description="NN inference.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -36,7 +35,6 @@ def get_cli_args():
 
 
 def add_args_common(parser):
-
     parser.add_argument("-f", "--input-file", help="Input parameter file.", type=str)
     parser.add_argument(
         "-o",
@@ -120,6 +118,8 @@ class TrainInputs(BaseModel):
     density_field_activation: str = "relu"
     density_field_batch_norm: bool = True
     density_field_pooling: str = "average"
+
+    use_residual_cnn: bool = False
 
 
 class PowerSpectrumInputs(BaseModel):
@@ -285,7 +285,6 @@ class Inputs(BaseModel):
 def suggest_args(
     trial: optuna.trial.Trial | optuna.trial.FrozenTrial, args: Inputs
 ) -> Inputs:
-
     # Deepcopy args before changing values with current trial.
     args = args.model_copy(deep=True)
 
@@ -402,9 +401,7 @@ def suggest_args(
             )
 
     for probe in args.probes.probe_list:
-
         if probe == "density_field":
-
             if (
                 args.tune.density_field_n_channels_first.high
                 > args.tune.density_field_n_channels_first.low
@@ -429,21 +426,22 @@ def suggest_args(
                 args.train.density_field_final_nside = (
                     args.tune.density_field_final_nside.choices[0]
                 )
-            if (
-                args.tune.density_field_n_conv_per_block.high
-                > args.tune.density_field_n_conv_per_block.low
-            ):
-                args.train.density_field_n_conv_per_block = trial.suggest_int(
-                    "density_field_n_conv_per_block",
-                    args.tune.density_field_n_conv_per_block.low,
-                    args.tune.density_field_n_conv_per_block.high,
-                    step=args.tune.density_field_n_conv_per_block.step,
-                    log=args.tune.density_field_n_conv_per_block.log,
-                )
-            else:
-                args.train.density_field_n_conv_per_block = (
-                    args.tune.density_field_n_conv_per_block.low
-                )
+            if not args.train.use_residual_cnn:
+                if (
+                    args.tune.density_field_n_conv_per_block.high
+                    > args.tune.density_field_n_conv_per_block.low
+                ):
+                    args.train.density_field_n_conv_per_block = trial.suggest_int(
+                        "density_field_n_conv_per_block",
+                        args.tune.density_field_n_conv_per_block.low,
+                        args.tune.density_field_n_conv_per_block.high,
+                        step=args.tune.density_field_n_conv_per_block.step,
+                        log=args.tune.density_field_n_conv_per_block.log,
+                    )
+                else:
+                    args.train.density_field_n_conv_per_block = (
+                        args.tune.density_field_n_conv_per_block.low
+                    )
             if len(args.tune.density_field_activation.choices) > 1:
                 args.train.density_field_activation = trial.suggest_categorical(
                     "density_field_activation",
@@ -472,7 +470,6 @@ def suggest_args(
                 )
 
         elif probe == "power_spectrum":
-
             if args.tune.ps_fc_layers.high > args.tune.ps_fc_layers.low:
                 args.train.ps_fc_layers = trial.suggest_int(
                     "ps_fc_layers",
@@ -510,7 +507,6 @@ def suggest_args(
                 args.train.ps_batch_norm = args.tune.ps_batch_norm.choices[0]
 
         elif probe == "number_counts":
-
             if args.tune.nc_fc_layers.high > args.tune.nc_fc_layers.low:
                 args.train.nc_fc_layers = trial.suggest_int(
                     "nc_fc_layers",

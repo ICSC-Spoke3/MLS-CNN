@@ -17,7 +17,6 @@ activation_dict = {
 
 
 class FCRegressorMultiProbe(nn.Module):
-
     def __init__(
         self,
         feature_extractor_list: nn.ModuleList,
@@ -29,7 +28,6 @@ class FCRegressorMultiProbe(nn.Module):
         activation_func: str,
         pred_moments: bool,
     ):
-
         super().__init__()
 
         self.feature_extractor_list = feature_extractor_list
@@ -47,17 +45,16 @@ class FCRegressorMultiProbe(nn.Module):
         self.fc_module = nn.Sequential()
 
         for i in range(n_hidden_layers):
-
             self.fc_module.add_module(
-                f"fc_{i+1}",
+                f"fc_{i + 1}",
                 nn.LazyLinear(n_units_per_hidden_layer, bias=use_bias),
             )
             if batch_norm:
                 self.fc_module.add_module(
-                    f"batch_norm_{i+1}", nn.BatchNorm1d(n_units_per_hidden_layer)
+                    f"batch_norm_{i + 1}", nn.BatchNorm1d(n_units_per_hidden_layer)
                 )
-            self.fc_module.add_module(f"activation_{i+1}", activation())
-            self.fc_module.add_module(f"dropout_{i+1}", nn.Dropout(p=dropout))
+            self.fc_module.add_module(f"activation_{i + 1}", activation())
+            self.fc_module.add_module(f"dropout_{i + 1}", nn.Dropout(p=dropout))
 
         # Output layer.
         if pred_moments:
@@ -65,7 +62,6 @@ class FCRegressorMultiProbe(nn.Module):
         self.fc_output = nn.Linear(n_units_per_hidden_layer, output_size)
 
     def forward(self, x_list):
-
         # Feature extractor modules.
         feature_list = []
         for x, feature_extractor in zip(x_list, self.feature_extractor_list):
@@ -83,7 +79,6 @@ class FCRegressorMultiProbe(nn.Module):
 
 
 class FCRegressorSingleProbe(nn.Module):
-
     def __init__(
         self,
         feature_extractor: nn.Module,
@@ -95,7 +90,6 @@ class FCRegressorSingleProbe(nn.Module):
         activation_func: str,
         pred_moments: bool,
     ):
-
         super().__init__()
 
         self.feature_extractor = feature_extractor
@@ -113,17 +107,16 @@ class FCRegressorSingleProbe(nn.Module):
         self.fc_module = nn.Sequential()
 
         for i in range(n_hidden_layers):
-
             self.fc_module.add_module(
-                f"fc_{i+1}",
+                f"fc_{i + 1}",
                 nn.LazyLinear(n_units_per_hidden_layer, bias=use_bias),
             )
             if batch_norm:
                 self.fc_module.add_module(
-                    f"batch_norm_{i+1}", nn.BatchNorm1d(n_units_per_hidden_layer)
+                    f"batch_norm_{i + 1}", nn.BatchNorm1d(n_units_per_hidden_layer)
                 )
-            self.fc_module.add_module(f"activation_{i+1}", activation())
-            self.fc_module.add_module(f"dropout_{i+1}", nn.Dropout(p=dropout))
+            self.fc_module.add_module(f"activation_{i + 1}", activation())
+            self.fc_module.add_module(f"dropout_{i + 1}", nn.Dropout(p=dropout))
 
         # Output layer.
         if pred_moments:
@@ -131,7 +124,6 @@ class FCRegressorSingleProbe(nn.Module):
         self.fc_output = nn.Linear(n_units_per_hidden_layer, output_size)
 
     def forward(self, x):
-
         # Feature extractor module.
         x = self.feature_extractor(x)
 
@@ -142,6 +134,15 @@ class FCRegressorSingleProbe(nn.Module):
         x = self.fc_output(x)
 
         return x
+
+
+class ResNet(nn.Module):
+    def __init__(self, module):
+        super().__init__()
+        self.module = module
+
+    def forward(self, x):
+        return self.module(x) + x
 
 
 def get_cnn_extractor(
@@ -156,7 +157,6 @@ def get_cnn_extractor(
     pool_layer_type: str,
     n_conv_per_block: int,
 ):
-
     pool_layer_dict_2d = {
         "average": nn.AvgPool2d,
         "max": nn.MaxPool2d,
@@ -214,13 +214,11 @@ def get_cnn_extractor(
     n_channels_previous = in_channels
 
     for i in range(n_conv_blocks):
-
         n_channels = channels_factor**i * channels_first
 
         for j in range(n_conv_per_block):
-
             module.add_module(
-                f"conv_{i+1}_{j}",
+                f"conv_{i + 1}_{j}",
                 conv_layer(
                     n_channels_previous if j == 0 else n_channels,
                     n_channels,
@@ -232,11 +230,132 @@ def get_cnn_extractor(
                 ),
             )
             if batch_norm:
-                module.add_module(f"batch_norm_{i+1}_{j}", batch_norm_layer(n_channels))
-            module.add_module(f"activation_{i+1}_{j}", activation())
+                module.add_module(
+                    f"batch_norm_{i + 1}_{j}", batch_norm_layer(n_channels)
+                )
+            module.add_module(f"activation_{i + 1}_{j}", activation())
 
         module.add_module(
-            f"pool_{i+1}",
+            f"pool_{i + 1}",
+            pool_layer(
+                conv_kernel_2,
+                conv_stride_2,
+                conv_padding_2,
+            ),
+        )
+
+        n_channels_previous = n_channels
+
+    # Global average pooling.
+    # module.add_module("global_avg_pool", nn.AdaptiveAvgPool3d(1))
+
+    # Flatten.
+    module.add_module("flatten", nn.Flatten(start_dim=1))
+
+    return module
+
+
+def get_cnn_extractor_residual(
+    dim,
+    in_nside: int,
+    in_channels: int,
+    channels_first: int,
+    channels_factor: int,
+    final_nside: int,
+    batch_norm: bool,
+    activation_func: str,
+    pool_layer_type: str,
+):
+    pool_layer_dict_2d = {
+        "average": nn.AvgPool2d,
+        "max": nn.MaxPool2d,
+    }
+
+    pool_layer_dict_3d = {
+        "average": nn.AvgPool3d,
+        "max": nn.MaxPool3d,
+    }
+
+    if final_nside >= in_nside:
+        raise ValueError(f"`finale_nside` must be strictly smaller than `in_nside`.")
+
+    # Activation function.
+    activation = activation_dict[activation_func]
+
+    # Convolution settings.
+    # This window conserves the image size.
+    conv_kernel_1 = 3
+    conv_stride_1 = 1
+    conv_padding_1 = 1
+
+    # This window divides the image nside by two.
+    conv_kernel_2 = 2
+    conv_stride_2 = 2
+    conv_padding_2 = 0
+
+    padding_mode = "zeros"
+
+    n_conv_blocks = int(np.log2(in_nside / final_nside))
+
+    # Batch norm.
+    if dim == 2:
+        conv_layer = nn.Conv2d
+        batch_norm_layer = nn.BatchNorm2d
+        pool_layer = pool_layer_dict_2d[pool_layer_type]
+    elif dim == 3:
+        conv_layer = nn.Conv3d
+        batch_norm_layer = nn.BatchNorm3d
+        pool_layer = pool_layer_dict_3d[pool_layer_type]
+    else:
+        raise ValueError("Wrong dimension value: ", dim)
+
+    # Use or not bias.
+    if batch_norm:
+        use_bias = False
+    else:
+        use_bias = True
+
+    module = nn.Sequential()
+
+    n_channels_previous = in_channels
+
+    for i in range(n_conv_blocks):
+        n_channels = channels_factor**i * channels_first
+
+        module.add_module(
+            f"conv_{i + 1}_initial",
+            conv_layer(
+                n_channels_previous,
+                n_channels,
+                conv_kernel_1,
+                conv_stride_1,
+                conv_padding_1,
+                padding_mode=padding_mode,
+                bias=use_bias,
+            ),
+        )
+
+        module.add_module(
+            f"ResConvBlock_{i + 1}",
+            ResNet(
+                nn.Sequential(
+                    conv_layer(
+                        n_channels,
+                        n_channels,
+                        conv_kernel_1,
+                        conv_stride_1,
+                        conv_padding_1,
+                        padding_mode=padding_mode,
+                        bias=use_bias,
+                    ),
+                    batch_norm_layer(n_channels),
+                    activation(),
+                )
+            ),
+        )
+
+        module.add_module(
+            f"pool_{i + 1}",
             pool_layer(
                 conv_kernel_2,
                 conv_stride_2,
@@ -258,7 +377,6 @@ def get_cnn_extractor(
 def get_fc_extractor(
     n_hidden_layers, n_units_per_hidden_layer, batch_norm, dropout, activation_func
 ):
-
     # Activation function.
     activation = activation_dict[activation_func]
 
@@ -271,29 +389,25 @@ def get_fc_extractor(
     module = nn.Sequential()
 
     for i in range(n_hidden_layers):
-
         module.add_module(
-            f"fc_{i+1}", nn.LazyLinear(n_units_per_hidden_layer, bias=use_bias)
+            f"fc_{i + 1}", nn.LazyLinear(n_units_per_hidden_layer, bias=use_bias)
         )
 
         if batch_norm:
             module.add_module(
-                f"batch_norm_{i+1}", nn.BatchNorm1d(n_units_per_hidden_layer)
+                f"batch_norm_{i + 1}", nn.BatchNorm1d(n_units_per_hidden_layer)
             )
-        module.add_module(f"activation_{i+1}", activation())
-        module.add_module(f"dropout_{i+1}", nn.Dropout(p=dropout))
+        module.add_module(f"activation_{i + 1}", activation())
+        module.add_module(f"dropout_{i + 1}", nn.Dropout(p=dropout))
 
     return module
 
 
 def get_model(args: Inputs, dataset: Dataset):
-
     feature_extractor_list = []
 
     for i, probe in enumerate(args.probes.probe_list):
-
         if probe == "density_field":
-
             if len(args.probes.probe_list) > 1:
                 # Number of input channels.
                 in_channels = dataset[0][0][i].shape[0]
@@ -309,23 +423,35 @@ def get_model(args: Inputs, dataset: Dataset):
                 # Dimension of input images (without channel dim).
                 dim = dataset[0][0].dim() - 1
 
-            cnn_extractor = get_cnn_extractor(
-                dim,
-                nside,
-                in_channels,
-                args.train.density_field_n_channels_first,
-                2,
-                args.train.density_field_final_nside,
-                args.train.density_field_batch_norm,
-                args.train.density_field_activation,
-                args.train.density_field_pooling,
-                args.train.density_field_n_conv_per_block,
-            )
+            if args.train.use_residual_cnn:
+                cnn_extractor = get_cnn_extractor_residual(
+                    dim,
+                    nside,
+                    in_channels,
+                    args.train.density_field_n_channels_first,
+                    2,
+                    args.train.density_field_final_nside,
+                    args.train.density_field_batch_norm,
+                    args.train.density_field_activation,
+                    args.train.density_field_pooling,
+                )
+            else:
+                cnn_extractor = get_cnn_extractor(
+                    dim,
+                    nside,
+                    in_channels,
+                    args.train.density_field_n_channels_first,
+                    2,
+                    args.train.density_field_final_nside,
+                    args.train.density_field_batch_norm,
+                    args.train.density_field_activation,
+                    args.train.density_field_pooling,
+                    args.train.density_field_n_conv_per_block,
+                )
 
             feature_extractor_list.append(cnn_extractor)
 
         elif probe == "power_spectrum":
-
             feature_extractor_list.append(
                 get_fc_extractor(
                     args.train.ps_fc_layers,
@@ -337,7 +463,6 @@ def get_model(args: Inputs, dataset: Dataset):
             )
 
         elif probe == "number_counts":
-
             feature_extractor_list.append(
                 get_fc_extractor(
                     args.train.nc_fc_layers,
