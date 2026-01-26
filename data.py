@@ -452,7 +452,7 @@ class PowerSpectrumDataset(BaseDataset):
                     else:
                         data_sel = data_read[f"{self.mobs_type}_{m:.2e}"]
 
-                    data.append(np.log10(1 + data_sel))
+                    data.append(np.log10(1 + np.clip(data_sel, a_min=0, a_max=None)))
 
         data = np.ravel(data)
 
@@ -569,20 +569,24 @@ class DensityFieldDataset(BaseDataset):
 
 
 class AugmentedDensityFieldDataset(Dataset):
+
     def __init__(self, dataset: DensityFieldDataset, n_augment: int) -> None:
+
         self.dataset = dataset
 
         self.n_augment = n_augment
 
         if not self.dataset.dataset.lazy_loading:
             self.data = []
-            for i in range(len(self.dataset) * (self.n_augment + 1)):
-                self.data.append(self.read_data(i).to(device, non_blocking=True))
+            for idx in range(len(self.dataset) * (self.n_augment + 1)):
+                self.data.append(self.read_data(idx).to(device, non_blocking=True))
 
     def __len__(self):
+
         return len(self.dataset) * (self.n_augment + 1)
 
     def __getitem__(self, idx):
+
         if self.dataset.dataset.lazy_loading:
             data = self.read_data(idx)
         else:
@@ -593,12 +597,14 @@ class AugmentedDensityFieldDataset(Dataset):
         return data, label
 
     def read_label(self, idx):
+
         idx_base = int(idx % len(self.dataset))
 
         _, label = self.dataset[idx_base]
 
         return label
 
+    def read_data(self, idx):
     
         idx_base = int(idx % len(self.dataset))
         idx_augment = int(idx // len(self.dataset))
@@ -722,7 +728,7 @@ def get_dataset_single_probe(
     )
 
     # Augment dataset for CNN.
-    if probe == "density_field":
+    if probe == "density_field" and args.probes.density_field.n_augment > 0:
         dataset_train = AugmentedDensityFieldDataset(
             dataset_train, args.probes.density_field.n_augment
         )
