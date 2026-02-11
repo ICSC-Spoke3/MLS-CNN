@@ -1,3 +1,5 @@
+Code used to produce the results from https://doi.org/10.1016/j.ascom.2026.101067 (version 0.1.0).
+
 # Installation
 
 Clone the repository and install all the dependencies with pip:
@@ -18,8 +20,8 @@ Examples of input parameter files in inputs/.
 
 Examples of slurm scripts to run the code in scripts/.
 
-## License
+# License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-## Contact
+# Contact
 For questions or feedback, contact [inigo.saez@unimit.it](mailto:inigo.saez@unimit.it) or open an issue on GitHub.
